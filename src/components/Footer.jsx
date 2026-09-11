@@ -1,0 +1,101 @@
+import { useReveal } from "../hooks/useReveal"
+import { GlobeIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from "./icons"
+
+const contactDetails = [
+  { icon: GlobeIcon, text: "corephiahealth.com" },
+  { icon: PhoneIcon, text: "(000) 123-4567" },
+  { icon: MapPinIcon, text: "Your Health. Our Priority. Your Transformation." },
+]
+
+const columns = [
+  {
+    title: "Treatments",
+    links: ["Weight loss", "Sexual health", "Hair loss", "Testosterone", "Health check"],
+  },
+  {
+    title: "Company",
+    links: ["About", "Careers", "Press", "Investors"],
+  },
+  {
+    title: "Support",
+    links: ["Help center", "Contact us", "Privacy policy", "Terms of service"],
+  },
+]
+
+export default function Footer() {
+  const [wordmarkRef, wordmarkVisible] = useReveal()
+
+  return (
+    <footer data-header-theme="dark" className="bg-ink-950 pt-16 pb-10 text-paper-100/70">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <a href="#top" className="font-serif text-2xl text-paper-100">
+              CorePhia
+            </a>
+
+            <ul className="mt-4 space-y-2 text-sm text-paper-100/60">
+              {contactDetails.map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-center gap-2">
+                  <Icon className="size-4 shrink-0 text-accent" />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {columns.map((col) => (
+            <nav key={col.title} aria-label={col.title}>
+              <h3 className="text-sm font-semibold text-paper-100">{col.title}</h3>
+              <ul className="mt-4 space-y-2 text-sm">
+                {col.links.map((link) => (
+                  <li key={link}>
+                    <a
+                      href="#top"
+                      className="inline-block transition-[color,transform] duration-200 ease-out-smooth hover:translate-x-0.5 hover:text-paper-100"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+
+        <div className="mt-14 flex flex-col gap-6 border-t border-paper-100/10 pt-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2 text-xs text-paper-100/60">
+            <ShieldCheckIcon className="size-8 text-accent" />
+            Certified
+          </div>
+
+          <div className="text-xs leading-relaxed text-paper-100/40 sm:text-right">
+            <p>
+              Corephia is a telehealth platform connecting patients with independent, licensed healthcare providers.
+              Corephia does not itself provide medical care and is not a substitute for the independent judgment of
+              a healthcare provider. Prescription products require an online consultation with a provider who will
+              determine if a prescription is appropriate. Not all products or doses are appropriate for all
+              patients.
+            </p>
+            <a href="#privacy-choices" className="mt-3 inline-block underline underline-offset-2 hover:text-paper-100">
+              Your privacy choices
+            </a>
+            <p className="mt-2">
+              &copy; {new Date().getFullYear()} Corephia. All rights reserved. COREPHIA is a trademark of Corephia.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div ref={wordmarkRef} className="mt-10 overflow-hidden" aria-hidden="true">
+        <p
+          className={`font-serif leading-[0.8] whitespace-nowrap text-ink-800 text-[24vw] transition-all duration-1000 ease-out-smooth sm:text-[20vw] ${
+            wordmarkVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"
+          }`}
+        >
+          CorePhia
+        </p>
+      </div>
+    </footer>
+  )
+}
