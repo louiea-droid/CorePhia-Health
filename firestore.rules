@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Intake records are PHI. Nothing is world-readable, and no client may read a
+// record without a role assigned in the user collection below.
+//
+// Two tiers, set by hand in the Firestore Console — no Admin SDK, no service
+// account key, no CLI:
+//   1. Firebase Console > Authentication > Users > click the person > copy
+//      their "User UID".
+//   2. Firestore Console > user collection > Add document > set the
+//      document ID to that UID > add ONE field: role (string) = "superAdmin"
+//      (you) or "admin" (Dr. Antonious).
+// Never add a password field here — Firebase Auth already stores it
+// securely; mirroring it in a plain document would expose it to anyone with
+// Firestore Console access. Revoking access is deleting that document, or
+// clearing the role field.
+//
+// Both tiers may read intake records today; the split exists so that
+// higher-privilege actions (staff management, exports, deletion) can be
+// gated on superAdmin later without re-plumbing access.
+//
+// NOTE: writing real patient records to Firestore additionally requires a
+// signed Google Cloud BAA covering this project. These rules control access;
+// they do not make the storage HIPAA-compliant on their own.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function role() {
+      return request.auth != null
+        ? get(/databases/$(database)/documents/user/$(request.auth.uid)).data.role
+        : '';
+    }
+
+    function isStaff() {
+      return role() == 'admin' || role() == 'superAdmin';
+    }
+
+    // A signed-in person may read only their OWN role document — never
+    // another user's, and never write it themselves. Role assignment only
+    // ever happens by hand in the Console, which authenticates via GCP IAM
+    // and bypasses these rules entirely.
+    match /user/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /intakeRecords/{recordId} {
+      allow read: if isStaff();
+
+      // Patients submit through a trusted backend (an EMR endpoint or a
+      // BAA-covered Cloud Function), never straight from the browser, so no
+      // client-side create is permitted here.
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

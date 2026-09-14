@@ -14,8 +14,6 @@ const columns = [
     title: "Programs",
     links: [
       { label: "Weight loss programs", href: "/#programs" },
-      { label: "Nutrition coaching", href: "/#programs" },
-      { label: "Exercise plans", href: "/#programs" },
       { label: "Membership pricing", href: "/#pricing" },
     ],
   },
@@ -24,15 +22,13 @@ const columns = [
     links: [
       { label: "About us", to: "/about" },
       { label: "Contact us", to: "/contact" },
-      { label: "Careers" },
-      { label: "Press" },
     ],
   },
   {
     title: "Patients",
     links: [
       { label: "Start your intake", to: "/intake" },
-      { label: "Help center" },
+      { label: "FAQs", to: "/faq" },
       { label: "Privacy policy" },
       { label: "Terms of service" },
     ],

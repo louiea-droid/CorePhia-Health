@@ -6,11 +6,10 @@ import { ChevronRightIcon, CloseIcon, PersonIcon } from "./icons"
 
 const exploreLinks = [
   { label: "Weight Loss Programs", href: "/#programs" },
-  { label: "Nutrition & Diet", href: "/#programs" },
-  { label: "Exercise & Fitness", href: "/#programs" },
   { label: "Membership Pricing", href: "/#pricing" },
   { label: "About Us", to: "/about" },
   { label: "Contact Us", to: "/contact" },
+  { label: "FAQs", to: "/faq" },
   { label: "Start Your Intake", to: "/intake" },
 ]
 

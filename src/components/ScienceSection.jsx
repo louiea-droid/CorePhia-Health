@@ -64,7 +64,7 @@ export default function ScienceSection() {
       id="science"
       aria-labelledby="science-heading"
       data-header-theme="dark"
-      className="bg-ink-950 pb-16 sm:pb-24"
+      className="bg-ink-950 py-16 sm:py-24"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 id="science-heading" className="sr-only">
@@ -78,21 +78,13 @@ export default function ScienceSection() {
               absorptionVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             }`}
           >
-            <div className="flex items-start justify-between gap-4">
-              <p className="font-serif text-2xl leading-tight text-paper-100 sm:text-3xl">
-                A program built on
-                <br />
-                <span className="text-accent">real, sustainable habits</span>
-              </p>
-              <a
-                href="/#programs"
-                className="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-200 ease-out-smooth hover:scale-105 hover:bg-accent-dark"
-              >
-                See the science
-              </a>
-            </div>
+            <p className="font-serif text-2xl leading-tight text-paper-100 sm:text-3xl">
+              A program built on
+              <br />
+              <span className="text-accent">real, sustainable habits</span>
+            </p>
 
-            <div className="flex flex-1 flex-col items-center justify-center gap-6 sm:flex-row sm:gap-8">
+            <div className="flex flex-1 flex-col items-center justify-center gap-6 sm:flex-row sm:justify-between sm:gap-8">
               <p
                 className={`max-w-32 text-sm text-paper-100/70 transition-all delay-150 duration-700 ease-out-smooth sm:text-right ${
                   absorptionVisible ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"

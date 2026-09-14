@@ -152,10 +152,7 @@ export default function About() {
               </p>
               <p className="mt-4 leading-relaxed text-ink-950/70">
                 Dr. Antonious is double board certified in internal medicine and nephrology and is currently
-                pursuing an additional fellowship in critical care. He founded Corephia out of frustration with
-                an industry that sells medication without accountability, and built it around the standard he
-                holds in hospital medicine: evidence-based care, complete information, and a plan the patient
-                and provider build together.
+                pursuing an additional fellowship in critical care.
               </p>
               <p className="mt-4 flex items-center gap-2 text-sm text-ink-950/60">
                 <MapPinIcon className="size-4 shrink-0 text-accent-dark" />

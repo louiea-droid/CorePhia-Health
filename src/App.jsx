@@ -1,11 +1,16 @@
-import { useEffect } from "react"
+import { Suspense, lazy, useEffect } from "react"
 import { Route, Routes, useLocation, useNavigationType } from "react-router-dom"
 import Footer from "./components/Footer"
 import Header from "./components/Header"
 import PatientIntakeForm from "./components/PatientIntakeForm"
 import About from "./pages/About"
 import Contact from "./pages/Contact"
+import Faq from "./pages/Faq"
 import Home from "./pages/Home"
+
+// Lazily loaded so the admin bundle — and the Firebase SDK it pulls in — is
+// never downloaded by visitors to the public site.
+const AdminApp = lazy(() => import("./admin/AdminApp"))
 
 function ScrollManager() {
   const { pathname, hash } = useLocation()
@@ -26,6 +31,18 @@ function ScrollManager() {
 }
 
 function App() {
+  const { pathname } = useLocation()
+
+  // The admin is a separate surface: no marketing header, footer or theming,
+  // and nothing on the public site links to it.
+  if (pathname.startsWith("/admin")) {
+    return (
+      <Suspense fallback={null}>
+        <AdminApp />
+      </Suspense>
+    )
+  }
+
   return (
     <div className="bg-paper-50">
       <ScrollManager />
@@ -35,6 +52,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<Faq />} />
           <Route path="/intake" element={<PatientIntakeForm />} />
         </Routes>
       </main>

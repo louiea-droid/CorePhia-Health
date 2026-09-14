@@ -48,15 +48,7 @@ export default function Hero() {
         <br />
         <span className="text-accent-dark">Lasting confidence.</span>
       </h1>
-      <p
-        className={`mt-4 max-w-md text-lg text-ink-950/60 transition-all duration-1000 ease-out-smooth ${
-          subheadIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-        }`}
-      >
-        A physician-built weight loss program combining dietitian services, exercise prescriptions, and
-        medical support when you need it.
-      </p>
-
+     
       <ul
         className={`mt-6 flex flex-wrap gap-x-6 gap-y-3 transition-all duration-1000 ease-out-smooth ${
           trustIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"

@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async"
 import Breakthrough from "../components/Breakthrough"
-import CtaBanner from "../components/CtaBanner"
 import Hero from "../components/Hero"
 import PricingSection from "../components/PricingSection"
 import ProgramGrid from "../components/ProgramGrid"
@@ -24,7 +23,6 @@ export default function Home() {
       <PricingSection />
       <ScienceSection />
       <TeamSection />
-      <CtaBanner />
     </>
   )
 }

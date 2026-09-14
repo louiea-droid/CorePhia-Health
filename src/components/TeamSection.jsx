@@ -5,7 +5,7 @@ const doctor = {
   name: "Dr. Daniel Antonious, MD",
   role: "Double board certified in Internal Medicine and Nephrology",
   tags: ["Internal Medicine", "Nephrology"],
-  bio: "Dr. Antonious is double board certified in internal medicine and nephrology and is pursuing an additional fellowship in critical care. He built Corephia after growing tired of watching weight loss companies sell medication with no real lifestyle change behind it — using evidence-based medicine instead to combine dietitian services, exercise prescriptions, and medication when it's appropriate.",
+  bio: "Dr. Antonious is double board certified in internal medicine and nephrology and is pursuing an additional fellowship in critical care.",
   tone: "#2563eb",
 }
 
