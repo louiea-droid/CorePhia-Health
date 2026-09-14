@@ -31,7 +31,7 @@ export default function Contact() {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    // TODO: no destination yet — see submitIntake() in PatientIntakeForm.jsx.
+    // TODO: no destination yet — see submitIntakeRecord() in PatientIntakeForm.jsx.
     setSubmitted(true)
   }
 
