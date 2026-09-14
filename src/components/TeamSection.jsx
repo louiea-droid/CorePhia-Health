@@ -3,10 +3,10 @@ import { PersonAvatar } from "./Artwork"
 
 const doctor = {
   name: "Dr. Daniel Antonious, MD",
-  role: "Critical Care Fellow at AdventHealth",
+  role: "Double board certified in Internal Medicine and Nephrology",
   tags: ["Internal Medicine", "Nephrology"],
-  bio: "Board certified in internal medicine and nephrology, Dr. Antonious brings critical care expertise to Corephia's approach to complex, high-acuity patient needs — grounded in the same rigor patients expect from hospital-level care.",
-  tone: "#dd8f2e",
+  bio: "Dr. Antonious is double board certified in internal medicine and nephrology and is pursuing an additional fellowship in critical care. He built Corephia after growing tired of watching weight loss companies sell medication with no real lifestyle change behind it — using evidence-based medicine instead to combine dietitian services, exercise prescriptions, and medication when it's appropriate.",
+  tone: "#2563eb",
 }
 
 export default function TeamSection() {
@@ -15,7 +15,7 @@ export default function TeamSection() {
   return (
     <section
       aria-labelledby="team-heading"
-      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-20 sm:py-28"
+      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-16 sm:py-24"
     >
       <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
         <h2 id="team-heading" className="font-serif text-4xl leading-tight text-ink-950 sm:text-5xl">
@@ -34,13 +34,15 @@ export default function TeamSection() {
           visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
         }`}
       >
-        <article className="flex flex-col overflow-hidden rounded-3xl bg-paper-100 shadow-lg transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl sm:flex-row">
-          <PersonAvatar className="h-[179px] w-full shrink-0 sm:h-auto sm:w-2/5" tone={doctor.tone} />
+        <article className="flex flex-col items-center gap-6 overflow-hidden rounded-3xl bg-paper-100 p-6 shadow-lg transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl sm:flex-row sm:items-start sm:p-8">
+          <span className="size-28 shrink-0 overflow-hidden rounded-full bg-paper-200/70 ring-4 ring-paper-50">
+            <PersonAvatar className="h-full w-full" tone={doctor.tone} />
+          </span>
 
-          <div className="flex flex-col justify-center gap-3 p-6 text-left sm:p-8">
+          <div className="flex flex-col justify-center gap-3 text-center sm:text-left">
             <p className="text-base font-semibold text-ink-950">{doctor.role}</p>
 
-            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 sm:justify-start">
               {doctor.tags.map((tag) => (
                 <li key={tag} className="flex items-center gap-2 text-sm text-ink-950/60">
                   <span className="h-3.5 w-0.5 shrink-0 bg-accent-dark" aria-hidden="true" />

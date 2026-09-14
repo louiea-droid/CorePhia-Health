@@ -13,17 +13,22 @@
   --color-paper-100: #e7ecf6;
   --color-paper-200: #d0daee;
 
-  --color-accent: #f4a94a;
-  --color-accent-dark: #dd8f2e;
+  --color-accent: #60a5fa;
+  --color-accent-dark: #2563eb;
 
-  --color-brand: #1789a3;
-  --color-brand-dark: #106e85;
+  --color-brand: #3b5bdb;
+  --color-brand-dark: #1e3a8a;
 
   --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Keeps anchor targets clear of the sticky header. */
+section[id] {
+  scroll-margin-top: 6rem;
 }
 
 body {
@@ -68,10 +73,10 @@ body {
 @keyframes soft-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(244, 169, 74, 0.45);
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.45);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(244, 169, 74, 0);
+    box-shadow: 0 0 0 7px rgba(96, 165, 250, 0);
   }
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 import { useIntro } from "../hooks/useIntro"
 import { ArrowRightIcon, MenuIcon } from "./icons"
 import LoginPanel from "./LoginPanel"
@@ -9,6 +10,7 @@ export default function Header() {
   const [loginOpen, setLoginOpen] = useState(false)
   const [dark, setDark] = useState(false)
   const headerRef = useRef(null)
+  const location = useLocation()
   const barIn = useIntro(0)
   const navIn = useIntro(150)
 
@@ -47,12 +49,12 @@ export default function Header() {
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-4 text-center">
-          <span>The GLP-1 pill is here.</span>
+          <span>Real weight loss programs, built around you.</span>
           <a
-            href="#glp1-lineup"
-            className="inline-flex items-center gap-1 rounded-full bg-ink-950/90 px-3 py-1 font-semibold text-paper-100 transition-colors duration-200 ease-out-smooth hover:bg-ink-950"
+            href="/#programs"
+            className="inline-flex shrink-0 items-center gap-1 font-semibold text-ink-950 underline underline-offset-4 transition-opacity duration-200 ease-out-smooth hover:opacity-70"
           >
-            Check it out
+            See how it works
             <ArrowRightIcon className="size-3.5" />
           </a>
         </div>
@@ -68,12 +70,14 @@ export default function Header() {
           className="mx-auto flex max-w-7xl items-center justify-between py-4 pr-4 pl-6 sm:pr-6 sm:pl-8"
           aria-label="Primary"
         >
-          <a
-            href="#top"
+          <Link
+            to="/"
             className="shrink-0"
             onClick={(event) => {
-              event.preventDefault()
-              window.scrollTo({ top: 0, behavior: "smooth" })
+              if (location.pathname === "/") {
+                event.preventDefault()
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }
             }}
           >
             <img
@@ -83,18 +87,26 @@ export default function Header() {
                 dark ? "brightness-0 invert" : ""
               }`}
             />
-          </a>
+          </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              to="/intake"
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 ease-out-smooth sm:px-5 ${
+                dark
+                  ? "bg-accent text-ink-950 hover:bg-accent-dark hover:text-paper-50"
+                  : "bg-ink-950 text-paper-50 hover:bg-ink-900"
+              }`}
+            >
+              Get started
+            </Link>
             <button
               type="button"
               aria-haspopup="dialog"
               aria-expanded={loginOpen}
               onClick={() => setLoginOpen(true)}
-              className={`rounded-full border px-5 py-2 text-sm font-medium transition-colors duration-200 ease-out-smooth ${
-                dark
-                  ? "border-paper-100/20 text-paper-100 hover:border-paper-100/40 hover:bg-paper-100/10"
-                  : "border-ink-950/15 text-ink-950 hover:border-ink-950/40 hover:bg-ink-950/5"
+              className={`hidden text-sm font-medium underline-offset-4 transition-colors duration-200 ease-out-smooth hover:underline sm:inline-block ${
+                dark ? "text-paper-100/80 hover:text-paper-100" : "text-ink-950/70 hover:text-ink-950"
               }`}
             >
               Log in

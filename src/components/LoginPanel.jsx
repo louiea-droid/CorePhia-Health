@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { AppleIcon, CheckCircleIcon, CloseIcon, GoogleIcon } from "./icons"
 
-const perks = ["Manage subscriptions", "Track orders", "Message your care team"]
+const perks = ["Manage your membership", "Track your progress", "Message your care team"]
 
 export default function LoginPanel({ open, onClose }) {
   const closeButtonRef = useRef(null)
@@ -25,7 +25,7 @@ export default function LoginPanel({ open, onClose }) {
   }, [open, onClose])
 
   return createPortal(
-    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
+    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`} inert={!open}>
       <div
         onClick={onClose}
         aria-hidden="true"
@@ -38,6 +38,7 @@ export default function LoginPanel({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label="Log in"
+        aria-hidden={!open}
         className={`absolute top-0 right-0 flex h-full w-full max-w-sm flex-col overflow-y-auto rounded-l-3xl bg-paper-50 shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -56,7 +57,7 @@ export default function LoginPanel({ open, onClose }) {
         </div>
 
         <div className="px-6 pt-8 pb-8">
-          <h1 className="font-serif text-3xl text-ink-950">Welcome back</h1>
+          <h2 className="font-serif text-3xl text-ink-950">Welcome back</h2>
 
           <form className="mt-8 space-y-4" onSubmit={(event) => event.preventDefault()}>
             <input

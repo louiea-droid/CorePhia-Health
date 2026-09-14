@@ -1,21 +1,25 @@
+import { Link } from "react-router-dom"
 import { useIntro } from "../hooks/useIntro"
-import { PenArt, TabletArt } from "./Artwork"
+import { MealPlateArt } from "./Artwork"
 import {
   ChevronRightIcon,
   ClipboardCheckIcon,
-  DropIcon,
-  HairIcon,
-  HeartPulseIcon,
   LeafIcon,
   PersonIcon,
+  PillBottleIcon,
   StethoscopeIcon,
 } from "./icons"
 
+const included = [
+  { label: "Dietitian services", detail: "A meal plan built around how you actually eat", icon: LeafIcon },
+  { label: "Exercise prescriptions", detail: "Training matched to your level and your goal", icon: ClipboardCheckIcon },
+  { label: "Medical support", detail: "Medication when a provider says it's appropriate", icon: PillBottleIcon },
+]
+
 const quickLinks = [
-  { label: "Have better sex", highlight: null, icon: HeartPulseIcon, href: "#sex" },
-  { label: "Regrow hair", highlight: null, icon: HairIcon, href: "#hair" },
-  { label: "Boost", highlight: "testosterone", icon: DropIcon, href: "#testosterone" },
-  { label: "Get a", highlight: "health check", icon: ClipboardCheckIcon, href: "#health-check" },
+  { label: "Explore our", highlight: "weight loss programs", icon: LeafIcon, href: "/#programs" },
+  { label: "See", highlight: "membership pricing", icon: ClipboardCheckIcon, href: "/#pricing" },
+  { label: "Read", highlight: "Dr. Antonious's story", icon: StethoscopeIcon, to: "/about" },
 ]
 
 const trustPoints = [
@@ -49,7 +53,8 @@ export default function Hero() {
           subheadIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         }`}
       >
-        Medical weight loss, personalized for you.
+        A physician-built weight loss program combining dietitian services, exercise prescriptions, and
+        medical support when you need it.
       </p>
 
       <ul
@@ -70,94 +75,93 @@ export default function Hero() {
           cardsIn ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
         }`}
       >
-        <a
-          href="#glp1-lineup"
-          className="group relative isolate flex min-h-64 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-ink-900 via-ink-800 to-accent-dark p-7 text-paper-100 shadow-lg transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl"
+        <Link
+          to="/intake"
+          className="group relative isolate flex min-h-64 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-ink-950 via-ink-900 to-accent-dark p-7 text-paper-100 shadow-lg transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl"
         >
-          <div>
+          <div className="relative z-10">
             <p className="font-serif text-2xl leading-snug">
               Start your
               <br />
-              <span className="text-accent">weight loss today</span>
+              <span className="text-accent">weight loss program today</span>
+            </p>
+            <p className="mt-2 max-w-64 text-sm text-paper-100/70">
+              Complete your intake and your provider will have the full picture before your first visit.
             </p>
           </div>
 
           <div
-            className={`pointer-events-none absolute -right-6 top-1/2 flex w-40 -translate-y-1/2 rotate-[18deg] items-center justify-center opacity-95 transition-all duration-1000 ease-out-smooth group-hover:rotate-[12deg] group-hover:scale-105 ${
+            className={`pointer-events-none absolute -right-10 -bottom-8 opacity-90 transition-all duration-1000 ease-out-smooth group-hover:scale-105 ${
               cardsIn ? "scale-100" : "scale-110"
             }`}
+            aria-hidden="true"
           >
-            <PenArt className="h-56 drop-shadow-2xl" dose="7.2 mg" />
-            <TabletArt className="absolute left-2 top-6 size-24 drop-shadow-xl" label="co" />
+            <MealPlateArt className="size-28 rotate-12 opacity-80 drop-shadow-2xl sm:size-40 sm:opacity-100" />
           </div>
 
-          <div className="relative z-10 flex items-center justify-between text-sm font-medium">
-            <span>Find your Rx match</span>
-            <ChevronRightIcon className="size-5 transition-transform duration-300 ease-out-smooth group-hover:translate-x-1.5" />
-          </div>
-        </a>
+          <span className="relative z-10 mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-ink-950">
+            Start my program
+            <ChevronRightIcon className="size-4 transition-transform duration-300 ease-out-smooth group-hover:translate-x-1" />
+          </span>
+        </Link>
 
         <a
-          href="#glp1-lineup"
-          className="group relative isolate flex min-h-64 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-brand-dark via-brand to-accent p-7 text-ink-950 shadow-lg transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl"
+          href="/#programs"
+          className="group flex min-h-64 flex-col justify-between rounded-3xl border border-ink-950/10 bg-paper-100 p-7 transition-[transform,box-shadow] duration-300 ease-out-smooth hover:-translate-y-1 hover:shadow-xl"
         >
           <div>
-            <p className="font-serif text-2xl leading-snug text-paper-50">
-              See how much
-              <br />
-              weight you can lose
+            <p className="text-xs font-semibold tracking-widest text-accent-dark uppercase">
+              What's included
             </p>
+            <ul className="mt-4 space-y-3">
+              {included.map(({ label, detail, icon: Icon }) => (
+                <li key={label} className="flex items-start gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-paper-200/70 text-accent-dark">
+                    <Icon className="size-5" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold text-ink-950">{label}</span>
+                    <span className="block text-xs text-ink-950/60">{detail}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <svg
-            viewBox="0 0 300 140"
-            className="pointer-events-none absolute inset-x-0 bottom-14 h-24 w-full opacity-90"
-            aria-hidden="true"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0 20 C 60 10, 90 90, 150 100 S 260 40, 300 10"
-              fill="none"
-              stroke="#0d1a3d"
-              strokeOpacity="0.35"
-              strokeWidth="2"
-              strokeDasharray="1 10"
-              strokeLinecap="round"
-            />
-            <circle cx="0" cy="20" r="4" fill="#0d1a3d" />
-            <circle cx="300" cy="10" r="4" fill="#0d1a3d" />
-          </svg>
-
-          <div className="relative z-10 flex items-center justify-between text-sm font-medium text-paper-50">
-            <span>↓ Lose up to 25%*</span>
+          <span className="mt-5 flex items-center justify-between text-sm font-semibold text-ink-950">
+            See the full program
             <ChevronRightIcon className="size-5 transition-transform duration-300 ease-out-smooth group-hover:translate-x-1.5" />
-          </div>
+          </span>
         </a>
       </div>
 
       <ul
-        className={`mt-4 grid gap-3 transition-all duration-1000 ease-out-smooth sm:grid-cols-2 lg:grid-cols-4 ${
+        className={`mt-4 grid gap-3 transition-all duration-1000 ease-out-smooth sm:grid-cols-3 ${
           quickLinksIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         }`}
       >
-        {quickLinks.map(({ label, highlight, icon: Icon, href }) => (
-          <li key={label}>
-            <a
-              href={href}
-              className="group flex items-center justify-between gap-3 rounded-2xl bg-paper-100 py-4 pr-4 pl-5 transition-colors duration-200 ease-out-smooth hover:bg-paper-200/70"
-            >
-              <span className="text-base text-ink-950">
-                {label} {highlight && <span className="text-brand-dark">{highlight}</span>}
-              </span>
-              <span className="flex shrink-0 items-center gap-2">
-                <span className="flex size-11 items-center justify-center rounded-xl bg-paper-200/70 transition-transform duration-300 ease-out-smooth group-hover:scale-110">
-                  <Icon className="size-6 text-ink-800" />
+        {quickLinks.map(({ label, highlight, icon: Icon, href, to }) => {
+          const LinkTag = to ? Link : "a"
+          const linkProps = to ? { to } : { href }
+          return (
+            <li key={label}>
+              <LinkTag
+                {...linkProps}
+                className="group flex items-center justify-between gap-3 rounded-2xl bg-paper-100 py-4 pr-4 pl-5 transition-colors duration-200 ease-out-smooth hover:bg-paper-200/70"
+              >
+                <span className="text-base text-ink-950">
+                  {label} {highlight && <span className="text-brand-dark">{highlight}</span>}
                 </span>
-                <ChevronRightIcon className="size-4 text-ink-950/60 transition-transform duration-300 ease-out-smooth group-hover:translate-x-1" />
-              </span>
-            </a>
-          </li>
-        ))}
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="flex size-11 items-center justify-center rounded-xl bg-paper-200/70 transition-transform duration-300 ease-out-smooth group-hover:scale-110">
+                    <Icon className="size-6 text-ink-800" />
+                  </span>
+                  <ChevronRightIcon className="size-4 text-ink-950/60 transition-transform duration-300 ease-out-smooth group-hover:translate-x-1" />
+                </span>
+              </LinkTag>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )

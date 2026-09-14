@@ -22,43 +22,6 @@ export function ArrowRightIcon(props) {
   )
 }
 
-export function HeartPulseIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
-      <path
-        d="M12 20s-7.2-4.4-9.8-9C.6 7.4 2.3 4 5.7 4c2 0 3.4 1.1 4.3 2.4C10.9 5.1 12.3 4 14.3 4c3.4 0 5.1 3.4 3.5 7-.6 1.3-1.5 2.5-2.6 3.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M3 12h3l1.5-3L10 15l2-6 1.5 3H21" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-export function HairIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
-      <path
-        d="M6 21c-1-4 .5-6 .5-9a5.5 5.5 0 0 1 11 0c0 2.2-1 3-1 5"
-        strokeLinecap="round"
-      />
-      <path d="M9 21c-.6-2.6.2-4 .2-6.2M12.5 21c-.5-2.8.3-4.4.3-6.8M16 20c-.4-2-.1-3.3-.1-5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-export function DropIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
-      <path
-        d="M12 3s6.5 7.1 6.5 11.5A6.5 6.5 0 1 1 5.5 14.5C5.5 10.1 12 3 12 3Z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 export function ClipboardCheckIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
@@ -91,16 +54,6 @@ export function PersonIcon(props) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
       <circle cx="12" cy="8" r="3.5" />
       <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-export function CartIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
-      <path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 2-1.6L20.5 8H6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="10" cy="21" r="1.3" />
-      <circle cx="17" cy="21" r="1.3" />
     </svg>
   )
 }

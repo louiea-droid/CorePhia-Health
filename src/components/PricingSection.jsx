@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { useReveal } from "../hooks/useReveal"
 import {
   BadgeCheckIcon,
@@ -54,7 +55,7 @@ const tiers = [
       "Custom meal planning",
       "Exercise recommendations based on your goal",
       "Advanced lab testing (2x per year)",
-      "Hormone & metabolic optimization",
+      "1:1 certified trainer check-ins",
       "Unlimited provider access",
       "VIP experience",
     ],
@@ -63,7 +64,11 @@ const tiers = [
 
 const trustBadges = [
   { label: "Doctor Led Care", detail: "Expert care from licensed providers.", icon: ShieldCheckIcon },
-  { label: "Medication Included", detail: "All FDA-approved medications included.", icon: PillBottleIcon },
+  {
+    label: "Medication When Appropriate",
+    detail: "FDA-approved medication, prescribed only when clinically appropriate.",
+    icon: PillBottleIcon,
+  },
   { label: "Proven Results", detail: "Real people. Real transformations.", icon: TrendingUpIcon },
   { label: "Safe & Confidential", detail: "Your health. Your privacy. Always.", icon: LockIcon },
 ]
@@ -121,6 +126,17 @@ function PricingCard({ tier, index }) {
             </li>
           ))}
         </ul>
+
+        <Link
+          to={`/intake?plan=${encodeURIComponent(tier.name)}`}
+          className={`mt-8 block rounded-full px-6 py-3.5 text-center text-sm font-semibold transition-[transform,background-color] duration-200 ease-out-smooth hover:scale-[1.02] ${
+            tier.popular
+              ? "bg-ink-950 text-paper-50 hover:bg-ink-900"
+              : "border border-ink-950/20 text-ink-950 hover:border-ink-950/40 hover:bg-ink-950/5"
+          }`}
+        >
+          Choose {tier.name}
+        </Link>
       </article>
     </li>
   )
@@ -134,7 +150,7 @@ export default function PricingSection() {
     <section
       id="pricing"
       aria-labelledby="pricing-heading"
-      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-20 sm:py-28"
+      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-16 sm:py-24"
     >
       <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
         <div

@@ -1,24 +1,41 @@
+import { Link } from "react-router-dom"
 import { useReveal } from "../hooks/useReveal"
 import { GlobeIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from "./icons"
 
 const contactDetails = [
   { icon: GlobeIcon, text: "corephiahealth.com" },
   { icon: PhoneIcon, text: "(000) 123-4567" },
-  { icon: MapPinIcon, text: "Your Health. Our Priority. Your Transformation." },
+  { icon: MapPinIcon, text: "Tampa, Florida" },
 ]
 
+// Entries without `to`/`href` are not built yet and render as plain text.
 const columns = [
   {
-    title: "Treatments",
-    links: ["Weight loss", "Sexual health", "Hair loss", "Testosterone", "Health check"],
+    title: "Programs",
+    links: [
+      { label: "Weight loss programs", href: "/#programs" },
+      { label: "Nutrition coaching", href: "/#programs" },
+      { label: "Exercise plans", href: "/#programs" },
+      { label: "Membership pricing", href: "/#pricing" },
+    ],
   },
   {
     title: "Company",
-    links: ["About", "Careers", "Press", "Investors"],
+    links: [
+      { label: "About us", to: "/about" },
+      { label: "Contact us", to: "/contact" },
+      { label: "Careers" },
+      { label: "Press" },
+    ],
   },
   {
-    title: "Support",
-    links: ["Help center", "Contact us", "Privacy policy", "Terms of service"],
+    title: "Patients",
+    links: [
+      { label: "Start your intake", to: "/intake" },
+      { label: "Help center" },
+      { label: "Privacy policy" },
+      { label: "Terms of service" },
+    ],
   },
 ]
 
@@ -30,9 +47,9 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <a href="#top" className="font-serif text-2xl text-paper-100">
+            <Link to="/" className="font-serif text-2xl text-paper-100">
               CorePhia
-            </a>
+            </Link>
 
             <ul className="mt-4 space-y-2 text-sm text-paper-100/60">
               {contactDetails.map(({ icon: Icon, text }) => (
@@ -48,14 +65,27 @@ export default function Footer() {
             <nav key={col.title} aria-label={col.title}>
               <h3 className="text-sm font-semibold text-paper-100">{col.title}</h3>
               <ul className="mt-4 space-y-2 text-sm">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#top"
-                      className="inline-block transition-[color,transform] duration-200 ease-out-smooth hover:translate-x-0.5 hover:text-paper-100"
-                    >
-                      {link}
-                    </a>
+                {col.links.map(({ label, to, href }) => (
+                  <li key={label}>
+                    {to || href ? (
+                      to ? (
+                        <Link
+                          to={to}
+                          className="inline-block transition-[color,transform] duration-200 ease-out-smooth hover:translate-x-0.5 hover:text-paper-100"
+                        >
+                          {label}
+                        </Link>
+                      ) : (
+                        <a
+                          href={href}
+                          className="inline-block transition-[color,transform] duration-200 ease-out-smooth hover:translate-x-0.5 hover:text-paper-100"
+                        >
+                          {label}
+                        </a>
+                      )
+                    ) : (
+                      <span className="inline-block text-paper-100/30">{label}</span>
+                    )}
                   </li>
                 ))}
               </ul>
