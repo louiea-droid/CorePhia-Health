@@ -1,5 +1,27 @@
+import { useEffect, useRef, useState } from "react"
 import { ActivityArt } from "./Artwork"
 import { useReveal } from "../hooks/useReveal"
+
+// useReveal is deliberately one-shot, which left the needle's drop playing
+// while the section was still scrolling into place and finished before anyone
+// was looking at it. This one tracks visibility both ways, so leaving and
+// returning re-arms the card and its gauge together.
+function useReplayOnView() {
+  const ref = useRef(null)
+  const [inView, setInView] = useState(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0.3,
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return [ref, inView]
+}
 
 function DoseGauge({ dose = "7.2 mg", active }) {
   const ticks = Array.from({ length: 13 })
@@ -41,14 +63,22 @@ function DoseGauge({ dose = "7.2 mg", active }) {
               strokeWidth={isMid ? 3 : 1.5}
               strokeLinecap="round"
               style={
-                active
-                  ? { animation: `tick-fade 0.4s ease-out ${0.4 + i * 0.04}s both` }
-                  : { opacity: 0 }
+                active ? { animation: `tick-fade 0.35s ease-out ${i * 0.03}s both` } : { opacity: 0 }
               }
             />
           )
         })}
-        <circle cx={cx} cy={cy} r="3.5" fill="#60a5fa" />
+        {/* Drawn before the hub so the hub caps its base. The needle rests at
+            rotate(0) — straight up, on the highlighted tick — so the keyframes
+            can express the drop as offsets from the reading itself. */}
+        <path
+          d={`M ${cx - 1.7} ${cy} L ${cx} ${cy - rOuter + 8} L ${cx + 1.7} ${cy} Z`}
+          fill="var(--color-accent)"
+          className={active ? "animate-needle-drop" : ""}
+          style={active ? undefined : { opacity: 0 }}
+        />
+        <circle cx={cx} cy={cy} r="4.5" fill="var(--color-accent)" />
+        <circle cx={cx} cy={cy} r="1.8" fill="#1b2a4d" />
       </svg>
       <p className="mt-1 text-sm font-medium text-paper-100">{dose}</p>
     </div>
@@ -57,7 +87,27 @@ function DoseGauge({ dose = "7.2 mg", active }) {
 
 export default function ScienceSection() {
   const [absorptionRef, absorptionVisible] = useReveal()
-  const [doseRef, doseVisible] = useReveal()
+  // The results card drives its own gauge, so the card's entrance and the
+  // needle's drop start on the same frame and replay together.
+  const [doseRef, doseVisible] = useReplayOnView()
+  const magnetRef = useRef(null)
+
+  // Written straight to style rather than through state so pointer movement
+  // doesn't re-render the section on every mousemove. It also has to live on
+  // a wrapper, not on the art itself: animate-sphere-drift already animates
+  // that element's transform, and a running animation outranks inline styles.
+  const pullTowardCursor = (event) => {
+    const el = magnetRef.current
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const rect = el.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width - 0.5
+    const y = (event.clientY - rect.top) / rect.height - 0.5
+    el.style.transform = `translate(${x * 24}px, ${y * 16}px) scale(1.12)`
+  }
+
+  const releaseCursor = () => {
+    if (magnetRef.current) magnetRef.current.style.transform = ""
+  }
 
   return (
     <section
@@ -74,7 +124,7 @@ export default function ScienceSection() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div
             ref={absorptionRef}
-            className={`flex flex-col gap-6 rounded-3xl bg-ink-800 p-6 transition-all duration-700 ease-out-smooth sm:p-8 ${
+            className={`flex flex-col gap-6 rounded-3xl bg-gradient-to-br from-ink-700 via-ink-800 to-ink-900 p-6 shadow-lg transition-[transform,box-shadow,opacity] duration-700 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl sm:p-8 ${
               absorptionVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             }`}
           >
@@ -92,11 +142,18 @@ export default function ScienceSection() {
               >
                 Builds habits through <span className="text-paper-100">personalized nutrition coaching</span>
               </p>
-              <ActivityArt
-                className={`h-16 w-40 shrink-0 transition-all delay-300 duration-700 ease-out-smooth ${
-                  absorptionVisible ? "scale-100 animate-sphere-drift opacity-100" : "scale-75 opacity-0"
-                }`}
-              />
+              <div
+                ref={magnetRef}
+                onMouseMove={pullTowardCursor}
+                onMouseLeave={releaseCursor}
+                className="shrink-0 transition-transform duration-300 ease-out-smooth"
+              >
+                <ActivityArt
+                  className={`h-20 w-48 transition-all delay-300 duration-700 ease-out-smooth ${
+                    absorptionVisible ? "scale-100 animate-sphere-drift opacity-100" : "scale-75 opacity-0"
+                  }`}
+                />
+              </div>
               <p
                 className={`max-w-32 text-sm text-paper-100/70 transition-all delay-450 duration-700 ease-out-smooth ${
                   absorptionVisible ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
@@ -109,7 +166,7 @@ export default function ScienceSection() {
 
           <div
             ref={doseRef}
-            className={`flex flex-col items-center rounded-3xl bg-ink-800 p-6 text-center transition-all duration-700 ease-out-smooth sm:p-8 ${
+            className={`flex flex-col items-center rounded-3xl bg-gradient-to-bl from-ink-700 via-ink-800 to-ink-900 p-6 text-center shadow-lg transition-[transform,box-shadow,opacity] duration-700 ease-out-smooth hover:-translate-y-1 hover:shadow-2xl sm:p-8 ${
               doseVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             }`}
           >

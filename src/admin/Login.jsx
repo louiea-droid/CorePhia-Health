@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { resetAdminPassword, signInAdmin } from "./firebase"
 import { EyeIcon, EyeOffIcon } from "./icons"
 
@@ -122,7 +122,7 @@ function SignInForm({ onForgotPassword }) {
   return (
     <form onSubmit={handleSubmit}>
       <p className="font-serif text-2xl text-ink-950">Corephia Admin</p>
-      <p className="mt-2 text-sm text-ink-950/55">Authorized person only</p>
+    
 
       <label className="mt-6 block">
         <span className="mb-1.5 block text-sm font-medium text-ink-950/80">Email</span>
@@ -190,12 +190,38 @@ export default function Login({ notice }) {
   // carries over if they tap "Forgot password?" instead of retyping it.
   const [mode, setMode] = useState("sign-in")
   const [resetEmail, setResetEmail] = useState("")
+  const surfaceRef = useRef(null)
+  const orbRef = useRef(null)
+
+  // Written straight to style rather than through state so moving the pointer
+  // doesn't re-render the sign-in form — and offset by half the orb's own size
+  // via calc so it stays centred on the cursor whatever its dimensions are.
+  const trackCursor = (event) => {
+    const orb = orbRef.current
+    const surface = surfaceRef.current
+    if (!orb || !surface || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const rect = surface.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    orb.style.transform = `translate3d(calc(${x}px - 50%), calc(${y}px - 50%), 0)`
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper-50 px-4">
-      <div className="w-full max-w-sm">
+    <div
+      ref={surfaceRef}
+      onMouseMove={trackCursor}
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-paper-100 via-paper-200 to-accent/50 px-4"
+    >
+      <div
+        ref={orbRef}
+        aria-hidden="true"
+        style={{ transform: "translate3d(calc(50vw - 50%), calc(50vh - 50%), 0)" }}
+        className="pointer-events-none absolute top-0 left-0 size-40 rounded-full bg-accent/60 blur-2xl transition-transform duration-500 ease-out-smooth"
+      />
+
+      <div className="relative z-10 w-full max-w-sm">
         {notice}
-        <div className="rounded-3xl border border-ink-950/10 bg-white p-8">
+        <div className="rounded-3xl border border-white/70 bg-white/35 p-8 shadow-2xl shadow-ink-950/15 backdrop-blur-2xl">
           {mode === "sign-in" ? (
             <SignInForm
               onForgotPassword={(email) => {

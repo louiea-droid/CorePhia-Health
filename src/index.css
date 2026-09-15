@@ -9,7 +9,7 @@
   --color-ink-800: #1e3570;
   --color-ink-700: #2c4a86;
 
-  --color-paper-50: #f5f7fb;
+  --color-paper-50: #eef2f9;
   --color-paper-100: #e7ecf6;
   --color-paper-200: #d0daee;
 
@@ -115,8 +115,59 @@ body {
   }
 }
 
+/* A sensitive needle never sits perfectly dead, so it keeps drifting after it
+   lands. Runs on a delay matching the drop's full length, and sits last in the
+   animation list, so it takes over the transform the moment that ends. */
+@keyframes needle-idle {
+  0%,
+  100% {
+    transform: rotate(-1.3deg);
+  }
+  50% {
+    transform: rotate(1.3deg);
+  }
+}
+
+/* Weight coming off: the needle starts high on the dial, falls anticlockwise
+   past the reading, then rebounds in with decreasing amplitude until it rests
+   on it. The damping lives in the keyframes, so the timing function only has
+   to smooth each individual swing. */
+@keyframes needle-drop {
+  0% {
+    transform: rotate(78deg);
+  }
+  55% {
+    transform: rotate(-13deg);
+  }
+  72% {
+    transform: rotate(6deg);
+  }
+  86% {
+    transform: rotate(-3deg);
+  }
+  94% {
+    transform: rotate(1.2deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
 .animate-float {
   animation: float 4.5s var(--ease-out-smooth) infinite;
+}
+
+/* view-box + explicit origin so the needle pivots on the gauge hub rather
+   than the centre of its own bounding box. */
+/* No delay: it starts on the same frame as the card's own reveal transition so
+   the two read as one motion. view-box + explicit origin so the needle pivots
+   on the gauge hub rather than the centre of its own bounding box. */
+.animate-needle-drop {
+  transform-box: view-box;
+  transform-origin: 100px 88px;
+  animation:
+    needle-drop 1.3s ease-in-out both,
+    needle-idle 5s ease-in-out 1.3s infinite;
 }
 
 .animate-soft-pulse {
@@ -130,7 +181,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-float,
   .animate-soft-pulse,
-  .animate-sphere-drift {
+  .animate-sphere-drift,
+  .animate-needle-drop {
     animation: none;
   }
 }

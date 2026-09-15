@@ -15,7 +15,7 @@ export default function TeamSection() {
   return (
     <section
       aria-labelledby="team-heading"
-      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-16 sm:py-24"
+      className="bg-gradient-to-br from-paper-50 via-paper-100 to-accent/15 py-16 sm:py-24"
     >
       <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
         <h2 id="team-heading" className="font-serif text-4xl leading-tight text-ink-950 sm:text-5xl">

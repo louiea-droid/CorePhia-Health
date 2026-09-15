@@ -219,3 +219,39 @@ export function BadgeCheckIcon(props) {
     </svg>
   )
 }
+
+export function FacebookIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M14.5 8.5h2V5.5h-2.2c-2.3 0-3.8 1.5-3.8 3.9V11H8.5v3h2v7h3v-7h2.4l.4-3h-2.8V9.6c0-.7.4-1.1 1-1.1Z" />
+    </svg>
+  )
+}
+
+export function XIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true" {...props}>
+      <path d="M5 5l14 14M19 5L5 19" strokeLinecap="square" />
+    </svg>
+  )
+}
+
+export function InstagramIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="16.7" cy="7.3" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function LinkedInIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <rect x="3" y="9" width="3" height="11" />
+      <circle cx="4.5" cy="4.5" r="1.8" />
+      <path d="M9.5 9h2.9v1.6h.04c.4-.75 1.4-1.6 3-1.6 3.2 0 3.8 2.1 3.8 4.9V20h-3v-5.4c0-1.3 0-2.9-1.8-2.9s-2.06 1.4-2.06 2.8V20h-3V9Z" />
+    </svg>
+  )
+}

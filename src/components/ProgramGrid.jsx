@@ -79,18 +79,27 @@ export default function ProgramGrid() {
       id="programs"
       aria-labelledby="programs-heading"
       data-header-theme="dark"
-      className="bg-ink-950 py-16 sm:py-24"
+      className="relative overflow-hidden rounded-3xl bg-ink-950 py-16 sm:py-24"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="absolute inset-0 bg-gradient-to-tr from-ink-950 via-ink-800 to-brand" />
+      <div
+        className="pointer-events-none absolute top-0 left-1/2 size-[36rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-accent/20 blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
         <h2
           ref={headingRef}
           id="programs-heading"
-          className={`font-serif text-3xl text-paper-100 transition-all duration-700 ease-out-smooth sm:text-4xl ${
+          className={`font-serif text-4xl leading-tight text-paper-100 transition-all duration-700 ease-out-smooth sm:text-5xl ${
             headingVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
           }`}
         >
-          Everything your program includes
+          Your weight loss,
+          <br />
+          <span className="text-accent">done the right way</span>
         </h2>
+       
 
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {pillars.map((pillar, index) => (

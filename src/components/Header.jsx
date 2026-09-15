@@ -11,6 +11,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [dark, setDark] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [promoDismissed, setPromoDismissed] = useState(() => {
     try {
       return localStorage.getItem(PROMO_DISMISSED_KEY) === "1"
@@ -43,6 +44,7 @@ export default function Header() {
       const el = document.elementFromPoint(window.innerWidth / 2, y)
       const themed = el?.closest("[data-header-theme]")
       setDark(themed?.getAttribute("data-header-theme") === "dark")
+      setScrolled(window.scrollY > 4)
     }
 
     const onScroll = () => {
@@ -77,20 +79,36 @@ export default function Header() {
               promoDismissed ? "opacity-0" : "opacity-100"
             }`}
           >
-            <div className="relative mx-auto flex max-w-7xl items-center justify-center gap-2 px-10 py-4 text-center sm:px-14">
-              <span>Real weight loss programs, built around you.</span>
-              <a
-                href="/#programs"
-                className="inline-flex shrink-0 items-center gap-1 font-semibold text-ink-950 underline underline-offset-4 transition-opacity duration-200 ease-out-smooth hover:opacity-70"
-              >
-                See how it works
-                <ArrowRightIcon className="size-3.5" />
-              </a>
+            {/* pb exceeds pt by exactly the header's -mt-4 (16px) overlap.
+                The header slides up over this bar's bottom edge, so padding
+                that's symmetric in the DOM leaves the text looking high in
+                the strip that's actually visible — the extra bottom padding
+                is what the header then covers.
+
+                Three columns rather than one centered row so the close
+                button can sit in the corner without dragging the message
+                off-centre; `content-center` on the message keeps its lines
+                centred as a group once they wrap at narrow widths, which
+                plain `items-center` does not do. */}
+            <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 pt-2 pb-6 text-center sm:px-6">
+              <span aria-hidden="true" />
+
+              <p className="flex flex-wrap content-center items-center justify-center gap-x-2.5 gap-y-1 font-medium tracking-[0.01em] text-ink-950/90">
+                Real weight loss programs, built around you.
+                <a
+                  href="/#programs"
+                  className="group inline-flex shrink-0 items-center gap-1.5 font-semibold text-ink-950 underline decoration-ink-950/35 decoration-1 underline-offset-4 transition-colors duration-200 ease-out-smooth hover:decoration-ink-950"
+                >
+                  See how it works
+                  <ArrowRightIcon className="size-3.5 transition-transform duration-200 ease-out-smooth group-hover:translate-x-0.5" />
+                </a>
+              </p>
+
               <button
                 type="button"
                 aria-label="Dismiss announcement"
                 onClick={dismissPromo}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-ink-950/60 transition-colors duration-200 ease-out-smooth hover:bg-ink-950/10 hover:text-ink-950 sm:right-6"
+                className="justify-self-end rounded-full p-1.5 text-ink-950/55 transition-colors duration-200 ease-out-smooth hover:bg-ink-950/10 hover:text-ink-950"
               >
                 <CloseIcon className="size-4" />
               </button>
@@ -101,9 +119,11 @@ export default function Header() {
 
       <header
         ref={headerRef}
-        className={`sticky top-0 z-40 rounded-t-[2rem] shadow-[0_-1px_0_rgba(16,32,43,0.05)] backdrop-blur transition-[transform,opacity,background-color,margin-top] duration-500 ease-out-smooth ${
+        className={`sticky top-0 z-40 shadow-[0_-1px_0_rgba(16,32,43,0.05)] backdrop-blur transition-[transform,opacity,background-color,margin-top,border-radius] duration-500 ease-out-smooth ${
           navIn ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
-        } ${dark ? "bg-ink-950/90" : "bg-paper-50/95"} ${promoDismissed ? "-mt-6" : "-mt-2"}`}
+        } ${dark ? "bg-ink-950/90" : "bg-paper-50/95"} ${promoDismissed ? "-mt-6" : "-mt-4"} ${
+          scrolled ? "rounded-t-none" : "rounded-t-2xl"
+        }`}
       >
         <nav
           className="mx-auto flex max-w-7xl items-center justify-between py-4 pr-4 pl-6 sm:pr-6 sm:pl-8"
@@ -131,13 +151,27 @@ export default function Header() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/intake"
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 ease-out-smooth sm:px-5 ${
+              className={`group relative isolate overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-[transform,background-color,color,box-shadow] duration-300 ease-out-smooth hover:scale-105 hover:shadow-xl hover:shadow-accent-dark/25 sm:px-5 ${
                 dark
                   ? "bg-accent text-ink-950 hover:bg-accent-dark hover:text-paper-50"
                   : "bg-ink-950 text-paper-50 hover:bg-ink-900"
               }`}
             >
-              Get started
+              {/* Diagonal shine sweeping across on hover — a subtle "premium
+                  button" highlight layered on top of the existing solid-fill
+                  look, rather than replacing it with the reference snippet's
+                  outline style, which would look inconsistent with every
+                  other button on the site. Tinted with the site's own accent
+                  blue against the navy button, and a soft paper highlight
+                  against the light-blue button, rather than a generic white
+                  sweep — so it reads as on-brand, not off-the-shelf. */}
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 ease-out-smooth group-hover:translate-x-full ${
+                  dark ? "via-paper-50/50" : "via-accent/60"
+                }`}
+              />
+              <span className="relative z-10">Get started</span>
             </Link>
             <button
               type="button"

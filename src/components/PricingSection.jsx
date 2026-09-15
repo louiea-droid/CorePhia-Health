@@ -91,7 +91,7 @@ export default function PricingSection() {
     <section
       id="pricing"
       aria-labelledby="pricing-heading"
-      className="bg-gradient-to-b from-paper-50 to-paper-100/50 py-16 sm:py-24"
+      className="bg-gradient-to-br from-paper-50 via-paper-100 to-accent/15 py-16 sm:py-24"
     >
       <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
         <div

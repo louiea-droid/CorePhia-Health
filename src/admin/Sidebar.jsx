@@ -1,4 +1,6 @@
+import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
+import ConfirmDialog from "./ConfirmDialog"
 import { ChevronLeftIcon, CloseIcon, DashboardIcon, PatientsIcon, PersonIcon, SignOutIcon } from "./icons"
 import { signOutAdmin } from "./firebase"
 
@@ -39,8 +41,22 @@ export default function Sidebar({
   onSignOut = signOutAdmin,
 }) {
   const location = useLocation()
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false)
+
   return (
     <>
+      <ConfirmDialog
+        open={confirmingSignOut}
+        title="Sign out of Corephia Admin?"
+        description="You'll need to sign in again to view patient records."
+        confirmLabel="Sign out"
+        onConfirm={() => {
+          setConfirmingSignOut(false)
+          onSignOut()
+        }}
+        onCancel={() => setConfirmingSignOut(false)}
+      />
+
       {/* Mobile scrim. Hidden from assistive tech; the panel below owns focus. */}
       <div
         aria-hidden="true"
@@ -150,7 +166,7 @@ export default function Sidebar({
 
           <button
             type="button"
-            onClick={onSignOut}
+            onClick={() => setConfirmingSignOut(true)}
             title={collapsed ? "Sign out" : undefined}
             className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-950/70 transition-colors duration-200 hover:bg-ink-950/5 hover:text-ink-950"
           >

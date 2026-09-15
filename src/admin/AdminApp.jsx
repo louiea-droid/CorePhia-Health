@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom"
 import Dashboard from "./Dashboard"
 import { getAdminRole, isConfigured, usingSeedData, watchAdminUser } from "./firebase"
 import { MenuIcon } from "./icons"
+import Loader from "./Loader"
 import Login from "./Login"
 import Patients from "./Patients"
 import Sidebar from "./Sidebar"
@@ -123,6 +124,12 @@ export default function AdminApp() {
   useEffect(() => {
     if (!isConfigured) return
     return watchAdminUser(async (nextUser) => {
+      // setUser and the awaited setRole land as two separate renders, not one
+      // batched update — without re-arming checkingAuth here, sign-in briefly
+      // renders with a user but last render's stale (null) role, which used
+      // to flash the "No access assigned" screen for every admin on every
+      // sign-in until the real role arrived.
+      setCheckingAuth(true)
       setUser(nextUser)
       setRole(nextUser ? await getAdminRole(nextUser) : null)
       setCheckingAuth(false)
@@ -189,7 +196,7 @@ export default function AdminApp() {
       <>
         {head}
         <div className="flex min-h-screen items-center justify-center bg-paper-50">
-          <p className="text-sm text-ink-950/50">Checking your session…</p>
+          <Loader />
         </div>
       </>
     )

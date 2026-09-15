@@ -1,11 +1,28 @@
 import { Link } from "react-router-dom"
 import { useReveal } from "../hooks/useReveal"
-import { GlobeIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from "./icons"
+import {
+  FacebookIcon,
+  GlobeIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  MapPinIcon,
+  PhoneIcon,
+  ShieldCheckIcon,
+  XIcon,
+} from "./icons"
 
 const contactDetails = [
   { icon: GlobeIcon, text: "corephiahealth.com" },
   { icon: PhoneIcon, text: "(000) 123-4567" },
   { icon: MapPinIcon, text: "Tampa, Florida" },
+]
+
+// TODO: replace with real profile URLs before launch.
+const socialLinks = [
+  { label: "Facebook", icon: FacebookIcon, href: "#" },
+  { label: "X", icon: XIcon, href: "#" },
+  { label: "Instagram", icon: InstagramIcon, href: "#" },
+  { label: "LinkedIn", icon: LinkedInIcon, href: "#" },
 ]
 
 // Entries without `to`/`href` are not built yet and render as plain text.
@@ -85,6 +102,25 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
+
+              {col.title === "Patients" && (
+                <>
+                  <h3 className="mt-6 text-sm font-semibold text-paper-100">Social</h3>
+                  <ul className="mt-4 flex items-center gap-3">
+                    {socialLinks.map(({ label, icon: Icon, href }) => (
+                      <li key={label}>
+                        <a
+                          href={href}
+                          aria-label={label}
+                          className="flex size-10 items-center justify-center rounded-full bg-paper-100/10 text-paper-100 transition-colors duration-200 ease-out-smooth hover:bg-paper-100/20"
+                        >
+                          <Icon className="size-4" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </nav>
           ))}
         </div>
@@ -96,16 +132,14 @@ export default function Footer() {
           </div>
 
           <div className="text-xs leading-relaxed text-paper-100/40 sm:text-right">
-            <p>
+          {/* <p>
               Corephia is a telehealth platform connecting patients with independent, licensed healthcare providers.
               Corephia does not itself provide medical care and is not a substitute for the independent judgment of
               a healthcare provider. Prescription products require an online consultation with a provider who will
               determine if a prescription is appropriate. Not all products or doses are appropriate for all
               patients.
-            </p>
-            <a href="#privacy-choices" className="mt-3 inline-block underline underline-offset-2 hover:text-paper-100">
-              Your privacy choices
-            </a>
+            </p> */}
+           
             <p className="mt-2">
               &copy; {new Date().getFullYear()} Corephia. All rights reserved. COREPHIA is a trademark of Corephia.
             </p>
