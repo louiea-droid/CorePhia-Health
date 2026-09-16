@@ -19,7 +19,7 @@ const faqGroups = [
       },
       {
         q: "How do I get started?",
-        a: "Start with the intake form. It asks for your health history, your current medications and allergies, what a normal day of eating and movement looks like for you, and what you have already tried. Once you submit it, a member of our care team reaches out to arrange your first visit, and your provider reviews your answers before you meet.",
+        a: "Start with the patient intake form. It asks for your health history, your current medications and allergies, what a normal day of eating and movement looks like for you, and what you have already tried. Once you submit it, a member of our care team reaches out to arrange your first visit, and your provider reviews your answers before you meet.",
       },
       {
         q: "Who qualifies for the program?",
@@ -194,7 +194,7 @@ export default function Faq() {
                 to="/intake"
                 className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-200 ease-out-smooth hover:scale-[1.02] hover:bg-accent-dark"
               >
-                Start your intake
+                Start your journey
               </Link>
               <Link
                 to="/contact"

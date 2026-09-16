@@ -121,10 +121,7 @@ function SignInForm({ onForgotPassword }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <p className="font-serif text-2xl text-ink-950">Corephia Admin</p>
-    
-
-      <label className="mt-6 block">
+      <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-ink-950/80">Email</span>
         <input
           type="email"
@@ -222,6 +219,10 @@ export default function Login({ notice }) {
       <div className="relative z-10 w-full max-w-sm">
         {notice}
         <div className="rounded-3xl border border-white/70 bg-white/35 p-8 shadow-2xl shadow-ink-950/15 backdrop-blur-2xl">
+          <div className="mb-6 flex items-center gap-3">
+            <img src="/cp-mark.webp" alt="" className="h-8 w-auto object-contain" />
+            <p className="font-serif text-2xl text-ink-950">Corephia Admin</p>
+          </div>
           {mode === "sign-in" ? (
             <SignInForm
               onForgotPassword={(email) => {

@@ -1,15 +1,22 @@
-import { useEffect, useRef, useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Suspense, lazy, useEffect, useRef, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useIntro } from "../hooks/useIntro"
+import { hasPatientSessionHint, onPatientSessionHintChange } from "../lib/patientSessionHint"
 import { ArrowRightIcon, CloseIcon, MenuIcon } from "./icons"
-import LoginPanel from "./LoginPanel"
 import MobileMenu from "./MobileMenu"
+
+// Lazy, and only mounted once someone actually opens it (see loginTouched
+// below) — otherwise every visitor to the public site would download the
+// Firebase Auth SDK this pulls in, the same reason AdminApp is lazy.
+const LoginPanel = lazy(() => import("./LoginPanel"))
 
 const PROMO_DISMISSED_KEY = "corephia-promo-dismissed"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
+  const [loginTouched, setLoginTouched] = useState(false)
+  const [patientSignedIn, setPatientSignedIn] = useState(() => hasPatientSessionHint())
   const [dark, setDark] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [promoDismissed, setPromoDismissed] = useState(() => {
@@ -21,13 +28,47 @@ export default function Header() {
   })
   const headerRef = useRef(null)
   const location = useLocation()
+  const navigate = useNavigate()
   const barIn = useIntro(0)
   const navIn = useIntro(150)
+
+  useEffect(() => onPatientSessionHintChange(setPatientSignedIn), [])
+
+  const openLogin = () => {
+    setLoginTouched(true)
+    setLoginOpen(true)
+  }
+
+  // Shared by the header's account control and the mobile menu's account
+  // icon: a signed-in patient goes straight to their account, everyone else
+  // gets the login panel.
+  const handleAccountClick = () => {
+    if (patientSignedIn) navigate("/account")
+    else openLogin()
+  }
 
   const dismissPromo = () => {
     setPromoDismissed(true)
     try {
       localStorage.setItem(PROMO_DISMISSED_KEY, "1")
+    } catch {
+      /* private browsing / storage disabled */
+    }
+  }
+
+  // Collapsing to grid-rows-[0fr] still leaves the outer bar's own pt-5
+  // painted (padding, not height, so it doesn't collapse) as a thin blue
+  // strip above the header. The header still overlaps it a little (-mt-2
+  // below, vs. -mt-4 when shown) so its rounded corners keep tucking into
+  // the strip the same way they do when the message is showing — but less
+  // than before, so most of the strip's height stays clear of the header's
+  // own hit-testing box and this stays reliably clickable. Rather than let
+  // it sit as a dead sliver, it doubles as the way back: click it once
+  // dismissed and the message returns.
+  const restorePromo = () => {
+    setPromoDismissed(false)
+    try {
+      localStorage.removeItem(PROMO_DISMISSED_KEY)
     } catch {
       /* private browsing / storage disabled */
     }
@@ -69,8 +110,22 @@ export default function Header() {
         }`}
       >
         <div
+          {...(promoDismissed
+            ? {
+                onClick: restorePromo,
+                onKeyDown: (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    restorePromo()
+                  }
+                },
+                role: "button",
+                tabIndex: 0,
+                "aria-label": "Show announcement",
+              }
+            : {})}
           className={`grid overflow-hidden bg-accent text-sm text-ink-950 transition-[grid-template-rows,padding-top] duration-500 ease-out-smooth ${
-            promoDismissed ? "grid-rows-[0fr] pt-8" : "grid-rows-[1fr] pt-0"
+            promoDismissed ? "cursor-pointer grid-rows-[0fr] pt-5" : "grid-rows-[1fr] pt-0"
           }`}
         >
           <div
@@ -121,12 +176,12 @@ export default function Header() {
         ref={headerRef}
         className={`sticky top-0 z-40 shadow-[0_-1px_0_rgba(16,32,43,0.05)] backdrop-blur transition-[transform,opacity,background-color,margin-top,border-radius] duration-500 ease-out-smooth ${
           navIn ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
-        } ${dark ? "bg-ink-950/90" : "bg-paper-50/95"} ${promoDismissed ? "-mt-6" : "-mt-4"} ${
+        } ${dark ? "bg-ink-950/90" : "bg-paper-50/95"} ${promoDismissed ? "-mt-2" : "-mt-4"} ${
           scrolled ? "rounded-t-none" : "rounded-t-2xl"
         }`}
       >
         <nav
-          className="mx-auto flex max-w-7xl items-center justify-between py-4 pr-4 pl-6 sm:pr-6 sm:pl-8"
+          className="mx-auto flex max-w-7xl items-center justify-between py-4 pr-2 pl-2 sm:pr-4 sm:pl-4"
           aria-label="Primary"
         >
           <Link
@@ -140,7 +195,7 @@ export default function Header() {
             }}
           >
             <img
-              src="/cp-health.png"
+              src="/cp-health.webp"
               alt="CorePhia Health"
               className={`h-12 w-auto transition-[filter] duration-500 ease-out-smooth sm:h-14 ${
                 dark ? "brightness-0 invert" : ""
@@ -151,39 +206,52 @@ export default function Header() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/intake"
-              className={`group relative isolate overflow-hidden rounded-full px-4 py-2 text-sm font-semibold transition-[transform,background-color,color,box-shadow] duration-300 ease-out-smooth hover:scale-105 hover:shadow-xl hover:shadow-accent-dark/25 sm:px-5 ${
+              className={`group relative isolate inline-flex items-center overflow-hidden rounded-full px-4 py-2 text-sm font-semibold outline-2 -outline-offset-1 transition-[transform,color,outline-color,box-shadow] duration-700 ease-out-smooth hover:scale-105 sm:px-5 ${
                 dark
-                  ? "bg-accent text-ink-950 hover:bg-accent-dark hover:text-paper-50"
-                  : "bg-ink-950 text-paper-50 hover:bg-ink-900"
+                  ? "text-paper-100 outline-paper-100/50 hover:text-ink-950 hover:outline-accent hover:shadow-xl hover:shadow-accent/30"
+                  : "text-ink-950 outline-ink-950/70 hover:text-ink-950 hover:outline-accent hover:shadow-[0_0_32px_6px] hover:shadow-accent/50"
               }`}
             >
-              {/* Diagonal shine sweeping across on hover — a subtle "premium
-                  button" highlight layered on top of the existing solid-fill
-                  look, rather than replacing it with the reference snippet's
-                  outline style, which would look inconsistent with every
-                  other button on the site. Tinted with the site's own accent
-                  blue against the navy button, and a soft paper highlight
-                  against the light-blue button, rather than a generic white
-                  sweep — so it reads as on-brand, not off-the-shelf. */}
+              {/* Outlined by default; a skewed panel wipes in from the left on
+                  hover to fill it solid, rather than the shine-sweep this
+                  replaced. Same mechanic as the reference snippet (an
+                  absolutely-positioned ::before skewed and widened on hover),
+                  reimplemented as a sibling span in the site's own tokens and
+                  pill shape rather than the source's teal/5px-radius look,
+                  which would have clashed with every other button on the site.
+                  The text/outline/shadow transition above shares this same
+                  700ms duration rather than Tailwind's shorter default — they
+                  used to drift out of sync, so the text flipped white before
+                  the fill caught up to it, showing pale text on a still-light
+                  background for part of the hover. */}
               <span
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 ease-out-smooth group-hover:translate-x-full ${
-                  dark ? "via-paper-50/50" : "via-accent/60"
-                }`}
+                className="pointer-events-none absolute inset-y-0 left-[-10%] -z-10 w-0 -skew-x-12 bg-accent transition-[width] duration-700 ease-out-smooth group-hover:w-[220%]"
               />
-              <span className="relative z-10">Get started</span>
+              Get started
             </Link>
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded={loginOpen}
-              onClick={() => setLoginOpen(true)}
-              className={`hidden text-sm font-medium underline-offset-4 transition-colors duration-200 ease-out-smooth hover:underline sm:inline-block ${
-                dark ? "text-paper-100/80 hover:text-paper-100" : "text-ink-950/70 hover:text-ink-950"
-              }`}
-            >
-              Log in
-            </button>
+            {patientSignedIn ? (
+              <Link
+                to="/account"
+                className={`hidden text-sm font-medium underline-offset-4 transition-colors duration-200 ease-out-smooth hover:underline sm:inline-block ${
+                  dark ? "text-paper-100/80 hover:text-paper-100" : "text-ink-950/70 hover:text-ink-950"
+                }`}
+              >
+                My account
+              </Link>
+            ) : (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                aria-expanded={loginOpen}
+                onClick={openLogin}
+                className={`hidden text-sm font-medium underline-offset-4 transition-colors duration-200 ease-out-smooth hover:underline sm:inline-block ${
+                  dark ? "text-paper-100/80 hover:text-paper-100" : "text-ink-950/70 hover:text-ink-950"
+                }`}
+              >
+                Log in
+              </button>
+            )}
             <button
               type="button"
               aria-label="Open menu"
@@ -201,10 +269,14 @@ export default function Header() {
           </div>
         </nav>
 
-        <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onLoginClick={() => setLoginOpen(true)} />
+        <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onAccountClick={handleAccountClick} />
       </header>
 
-      <LoginPanel open={loginOpen} onClose={() => setLoginOpen(false)} />
+      {loginTouched && (
+        <Suspense fallback={null}>
+          <LoginPanel open={loginOpen} onClose={() => setLoginOpen(false)} />
+        </Suspense>
+      )}
     </>
   )
 }

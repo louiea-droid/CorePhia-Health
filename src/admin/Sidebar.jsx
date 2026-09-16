@@ -77,7 +77,7 @@ export default function Sidebar({
         <div className="flex items-center justify-between gap-2 border-b border-ink-950/10 px-4 py-4">
           <div className="flex min-w-0 items-center gap-2">
             {/* The real Corephia infinity mark, in its original colours —
-                cropped from cp-logo.png. CLAUDE.md keeps this logo's orange
+                cropped from cp-logo.webp. CLAUDE.md keeps this logo's orange
                 off the public marketing site pending an orange-free asset
                 from the client, but this admin is internal-only (noindex,
                 nofollow, never linked from the public site), so it's shown
@@ -85,11 +85,11 @@ export default function Sidebar({
                 visible, and always at the same position — the row's
                 justify-content never changes, so the icon doesn't shift
                 sideways as the label beside it collapses away. */}
-            <img src="/cp-mark.png" alt="" className="size-7 shrink-0 object-contain" />
+            <img src="/cp-mark.webp" alt="" className="size-7 shrink-0 object-contain" />
 
             <div className={`min-w-0 ${collapsibleLabelClass(collapsed)}`}>
               <p className="truncate font-serif text-base leading-none text-ink-950">Corephia Admin</p>
-              <p className="mt-1 truncate text-xs text-ink-950/45">Patient intake</p>
+              
             </div>
           </div>
 

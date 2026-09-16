@@ -44,7 +44,6 @@ const columns = [
   {
     title: "Patients",
     links: [
-      { label: "Start your intake", to: "/intake" },
       { label: "FAQs", to: "/faq" },
       { label: "Privacy policy" },
       { label: "Terms of service" },
@@ -147,15 +146,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div ref={wordmarkRef} className="mt-10 overflow-hidden" aria-hidden="true">
-        <p
-          className={`font-serif leading-[0.8] whitespace-nowrap text-ink-800 text-[24vw] transition-all duration-1000 ease-out-smooth sm:text-[20vw] ${
-            wordmarkVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"
-          }`}
-        >
-          CorePhia
-        </p>
-      </div>
+
     </footer>
   )
 }

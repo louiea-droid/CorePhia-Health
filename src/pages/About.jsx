@@ -130,7 +130,7 @@ export default function About() {
               to="/intake"
               className="mt-8 inline-flex rounded-full bg-ink-950 px-6 py-3 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900"
             >
-              Start your intake
+              Start your journey
             </Link>
           </Reveal>
         </div>
@@ -178,7 +178,7 @@ export default function About() {
                 to="/intake"
                 className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-200 ease-out-smooth hover:scale-[1.02] hover:bg-accent-dark"
               >
-                Start your intake
+                Start your journey
               </Link>
               <Link
                 to="/contact"

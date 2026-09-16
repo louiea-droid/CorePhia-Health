@@ -32,25 +32,9 @@ export function StatTile({ label, value, unit, caption }) {
   )
 }
 
-// For grouping a few related numbers inside one Card instead of each getting
-// its own bordered StatTile — e.g. current/goal/intended-loss weight, which
-// read as one "snapshot" rather than three separate facts.
-export function MiniStat({ label, value, unit, caption }) {
-  return (
-    <div>
-      <p className="text-xs font-medium tracking-wide text-ink-950/45 uppercase">{label}</p>
-      <p className="mt-1 text-xl leading-none font-semibold text-ink-950">
-        {value}
-        {unit && <span className="ml-1 text-sm font-medium text-ink-950/50">{unit}</span>}
-      </p>
-      {caption && <p className="mt-1 text-xs text-ink-950/40">{caption}</p>}
-    </div>
-  )
-}
-
 // Horizontal magnitude bars: one hue, length carries the value, every row
 // direct-labelled so identity never depends on colour.
-export function BarList({ data, total, emptyLabel = "No data yet" }) {
+export function BarList({ data, total, emptyLabel = "No data yet", onSelect }) {
   if (!data.length) return <p className="py-6 text-sm text-ink-950/45">{emptyLabel}</p>
 
   const max = Math.max(...data.map((item) => item.value))
@@ -59,8 +43,33 @@ export function BarList({ data, total, emptyLabel = "No data yet" }) {
     <ul className="space-y-2">
       {data.map((item) => {
         const share = total ? Math.round((item.value / total) * 100) : 0
+        // Only rows a caller actually wired up (onSelect) become clickable —
+        // e.g. "which patients reported this condition" makes sense for
+        // Conditions/Family history, not for a plain per-week count.
+        const interactiveProps = onSelect
+          ? {
+              onClick: () => onSelect(item),
+              onKeyDown: (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault()
+                  onSelect(item)
+                }
+              },
+              tabIndex: 0,
+              role: "button",
+              "aria-label": `See patients who reported ${item.label}`,
+            }
+          : {}
         return (
-          <li key={item.label} className="group relative">
+          <li
+            key={item.label}
+            {...interactiveProps}
+            className={`group relative ${
+              onSelect
+                ? "-mx-2 cursor-pointer rounded-lg px-2 py-1 outline-none transition-colors duration-150 hover:bg-paper-100 focus-visible:bg-paper-100"
+                : ""
+            }`}
+          >
             <div className="flex items-baseline justify-between gap-3">
               <span className="truncate text-sm text-ink-950/80">{item.label}</span>
               <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-950">{item.value}</span>

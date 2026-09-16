@@ -149,6 +149,52 @@ export function MealPlateArt({ className = "" }) {
   )
 }
 
+/** Stethoscope, evokes ongoing check-ins with a provider. */
+export function HealthCheckArt({ className = "" }) {
+  const tubeId = nextGradientId("tube")
+  const drumId = nextGradientId("drum")
+  return (
+    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="Ongoing health checks">
+      <defs>
+        <linearGradient id={tubeId} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="55%" stopColor="#e7ecf6" />
+          <stop offset="100%" stopColor="#c3d0e8" />
+        </linearGradient>
+        <radialGradient id={drumId} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="60%" stopColor="#eef1f6" />
+          <stop offset="100%" stopColor="#c7cedd" />
+        </radialGradient>
+      </defs>
+
+      {/* Binaural tubing: both ear tubes and the U joining them. */}
+      <path
+        d="M52 30v34a48 48 0 0 0 96 0V30"
+        fill="none"
+        stroke={`url(#${tubeId})`}
+        strokeWidth="17"
+        strokeLinecap="round"
+      />
+      {/* Down to the chest piece, curving off-centre so the whole thing reads
+          as a stethoscope rather than a symmetric pair of headphones. */}
+      <path
+        d="M100 112v16a34 34 0 0 1-34 34"
+        fill="none"
+        stroke={`url(#${tubeId})`}
+        strokeWidth="17"
+        strokeLinecap="round"
+      />
+
+      <circle cx="52" cy="30" r="12" fill="#2563eb" />
+      <circle cx="148" cy="30" r="12" fill="#2563eb" />
+
+      <circle cx="66" cy="162" r="27" fill={`url(#${drumId})`} stroke="#b6c5e2" strokeWidth="2" />
+      <circle cx="66" cy="162" r="15" fill="#3b5bdb" opacity="0.85" />
+    </svg>
+  )
+}
+
 /** Dumbbell silhouette, evokes structured exercise plans. */
 export function ActivityArt({ className = "" }) {
   const barId = nextGradientId("bar")

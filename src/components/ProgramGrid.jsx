@@ -1,6 +1,6 @@
 import { useReveal } from "../hooks/useReveal"
-import { ActivityArt, CareShieldArt, MealPlateArt } from "./Artwork"
-import { BadgeCheckIcon, ClipboardCheckIcon, StethoscopeIcon } from "./icons"
+import { ActivityArt, CareShieldArt, HealthCheckArt, MealPlateArt } from "./Artwork"
+import { BadgeCheckIcon, ClipboardCheckIcon } from "./icons"
 
 function FdaSeal() {
   return (
@@ -66,7 +66,7 @@ const pillars = [
   {
     name: "Ongoing health checks",
     description: "Regular check-ins and progress tracking to keep your plan on target.",
-    art: <StethoscopeIcon className="size-24 text-ink-950" />,
+    art: <HealthCheckArt className="size-28" />,
     fda: false,
   },
 ]

@@ -44,6 +44,32 @@ function average(numbers) {
   return Math.round(usable.reduce((total, value) => total + value, 0) / usable.length)
 }
 
+// Fixed-width histogram bands over a numeric field — what an average on its own
+// can't say, i.e. whether patients cluster or spread. Bands with no patients in
+// them are kept when they fall inside the range, so a gap in the distribution
+// reads as a gap instead of silently closing up and putting two distant
+// clusters side by side.
+function bands(numbers, size, unit) {
+  const usable = numbers.filter((value) => Number.isFinite(value) && value > 0)
+  if (!usable.length) return []
+
+  const first = Math.floor(Math.min(...usable) / size) * size
+  const last = Math.floor(Math.max(...usable) / size) * size
+
+  const buckets = []
+  for (let start = first; start <= last; start += size) {
+    buckets.push({
+      label: `${start}–${start + size - 1} ${unit}`,
+      value: usable.filter((value) => value >= start && value < start + size).length,
+      // Exposed alongside label so a caller can filter records against the
+      // actual numeric bounds instead of re-parsing them back out of it.
+      min: start,
+      max: start + size,
+    })
+  }
+  return buckets
+}
+
 // Monday-anchored week buckets, oldest first, including weeks with no intakes so
 // a quiet week reads as a gap rather than being silently dropped.
 function weeklyCounts(records, weeks) {
@@ -89,6 +115,7 @@ export function deriveMetrics(records) {
     avgCurrentWeight: average(currentWeights),
     avgGoalWeight: average(goalWeights),
     avgTargetLoss: average(targetLosses),
+    currentWeightBands: bands(currentWeights, 25, "lb"),
     weekly: weeklyCounts(records, 10),
     plans: tallyInOrder(
       records.map((record) => record.visit?.membershipPlan),

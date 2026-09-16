@@ -17,15 +17,6 @@ export function StatTileSkeleton() {
   )
 }
 
-export function MiniStatSkeleton() {
-  return (
-    <div>
-      <Bar className="h-2.5 w-16" />
-      <Bar className="mt-2 h-5 w-12" />
-    </div>
-  )
-}
-
 // Mirrors Card's own header row exactly so a real Card can swap in without
 // the title/hint position shifting even by a pixel.
 function CardFrame({ className = "", children }) {
@@ -102,18 +93,6 @@ export function StackedBarSkeleton({ className = "", segments = 3 }) {
   )
 }
 
-export function MiniStatCardSkeleton({ className = "" }) {
-  return (
-    <CardFrame className={className}>
-      <div className="grid grid-cols-3 gap-4">
-        <MiniStatSkeleton />
-        <MiniStatSkeleton />
-        <MiniStatSkeleton />
-      </div>
-    </CardFrame>
-  )
-}
-
 // Shared by Dashboard's "Most recent intakes" preview and the full Patients
 // list loading states — matches PatientsTable's real table-fixed + colgroup
 // widths and py-4 row height exactly.
@@ -157,14 +136,20 @@ export function TableSkeleton({ rows = 8 }) {
   )
 }
 
-// Mirrors Dashboard.jsx's populated layout row-for-row: 4 stat tiles, the
-// weekly chart + plan split, three bar-list cards, two more bar-list rows,
-// the weight snapshot, and the recent-intakes table preview.
+// Mirrors Dashboard.jsx's populated layout row-for-row: 4 stat tiles, 3 weight
+// stat tiles, the weekly chart + plan split, three bar-list cards, two more
+// bar-list rows, the weight spread, and the recent-intakes table preview.
 export function DashboardSkeleton() {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTileSkeleton />
+        <StatTileSkeleton />
+        <StatTileSkeleton />
+        <StatTileSkeleton />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTileSkeleton />
         <StatTileSkeleton />
         <StatTileSkeleton />
@@ -186,9 +171,9 @@ export function DashboardSkeleton() {
         <BarListSkeleton rows={7} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <BarListSkeleton rows={6} />
-        <MiniStatCardSkeleton />
+        <BarListSkeleton rows={4} />
       </div>
 
       <CardFrame>

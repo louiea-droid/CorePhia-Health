@@ -10,7 +10,6 @@ const exploreLinks = [
   { label: "About Us", to: "/about" },
   { label: "Contact Us", to: "/contact" },
   { label: "FAQs", to: "/faq" },
-  { label: "Start Your Intake", to: "/intake" },
 ]
 
 const topPrograms = [
@@ -19,7 +18,7 @@ const topPrograms = [
   { label: "Medical Support", href: "/#programs", art: <CareShieldArt className="h-16" /> },
 ]
 
-export default function MobileMenu({ open, onClose, onLoginClick }) {
+export default function MobileMenu({ open, onClose, onAccountClick }) {
   const closeButtonRef = useRef(null)
   const panelRef = useRef(null)
 
@@ -68,7 +67,7 @@ export default function MobileMenu({ open, onClose, onLoginClick }) {
               aria-label="Account"
               onClick={() => {
                 onClose()
-                onLoginClick?.()
+                onAccountClick?.()
               }}
             >
               <PersonIcon className="size-6" />

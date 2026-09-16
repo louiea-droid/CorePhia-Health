@@ -12,6 +12,11 @@ import Home from "./pages/Home"
 // never downloaded by visitors to the public site.
 const AdminApp = lazy(() => import("./admin/AdminApp"))
 
+// Same reasoning as AdminApp: Account pulls in the Firebase Auth SDK via
+// lib/patientAuth, so it stays out of the bundle until someone actually
+// navigates to /account.
+const Account = lazy(() => import("./pages/Account"))
+
 function ScrollManager() {
   const { pathname, hash } = useLocation()
   const navigationType = useNavigationType()
@@ -54,6 +59,14 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/intake" element={<PatientIntakeForm />} />
+          <Route
+            path="/account"
+            element={
+              <Suspense fallback={null}>
+                <Account />
+              </Suspense>
+            }
+          />
         </Routes>
       </main>
       <Footer />

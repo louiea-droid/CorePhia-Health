@@ -53,6 +53,22 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // One doc per patient account, written once at sign-up (src/lib/patientAuth.js)
+    // to record the email against the Auth uid. This is account/contact data, not
+    // a clinical record — it holds none of the intake's medical history, so it
+    // does not carry the same BAA requirement intakeRecords does. A patient may
+    // create only their own doc, only with the email their token already proves
+    // is theirs, and never edit or delete it afterward.
+    match /patients/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email', 'createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

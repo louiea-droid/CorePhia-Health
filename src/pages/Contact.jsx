@@ -53,7 +53,7 @@ export default function Contact() {
         </h1>
         <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-950/70">
           Tell us a little about what you're looking for and a member of our care team will reach out. If you're
-          ready to begin, you can go straight to the full intake form instead.
+          ready to begin, you can go straight to the full patient intake form instead.
         </p>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
@@ -64,7 +64,7 @@ export default function Contact() {
                 <h2 className="mt-4 font-serif text-2xl text-ink-950">Thanks — we've got it.</h2>
                 <p className="mt-2 max-w-md text-ink-950/70">
                   A member of our care team will reach out shortly. If you'd like to save time, you can complete
-                  your full intake form now.
+                  your full patient intake form now.
                 </p>
                 <Link
                   to="/intake"
@@ -151,13 +151,13 @@ export default function Contact() {
             <div className="rounded-3xl bg-gradient-to-br from-ink-950 via-ink-900 to-accent-dark p-6">
               <h2 className="font-serif text-xl leading-snug text-paper-100">Already know you're ready?</h2>
               <p className="mt-2 text-sm text-paper-100/70">
-                Complete the full intake form and your provider will have everything before your first visit.
+                Complete the full patient intake form and your provider will have everything before your first visit.
               </p>
               <Link
                 to="/intake"
                 className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-ink-950 transition-[transform,background-color] duration-200 ease-out-smooth hover:scale-[1.02] hover:bg-accent-dark"
               >
-                Start your intake
+                Start your journey
               </Link>
             </div>
           </aside>
