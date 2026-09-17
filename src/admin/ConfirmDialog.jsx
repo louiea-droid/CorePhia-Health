@@ -7,6 +7,7 @@ export default function ConfirmDialog({
   description,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }) {
@@ -60,7 +61,8 @@ export default function ConfirmDialog({
               ref={confirmButtonRef}
               type="button"
               onClick={onConfirm}
-              className="rounded-full bg-ink-950 px-4 py-2 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900"
+              disabled={confirmDisabled}
+              className="rounded-full bg-ink-950 px-4 py-2 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 disabled:opacity-60"
             >
               {confirmLabel}
             </button>

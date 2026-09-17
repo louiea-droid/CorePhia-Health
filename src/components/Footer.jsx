@@ -5,6 +5,7 @@ import {
   GlobeIcon,
   InstagramIcon,
   LinkedInIcon,
+  MailIcon,
   MapPinIcon,
   PhoneIcon,
   ShieldCheckIcon,
@@ -12,7 +13,8 @@ import {
 } from "./icons"
 
 const contactDetails = [
-  { icon: GlobeIcon, text: "corephiahealth.com" },
+  { icon: GlobeIcon, text: "corephia.com" },
+  { icon: MailIcon, text: "info@corephia.com" },
   { icon: PhoneIcon, text: "(000) 123-4567" },
   { icon: MapPinIcon, text: "Tampa, Florida" },
 ]

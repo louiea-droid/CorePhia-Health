@@ -86,6 +86,22 @@ body {
   }
 }
 
+@keyframes loading-bar {
+  0% {
+    left: 0;
+    right: auto;
+    width: 0%;
+  }
+  50% {
+    width: 100%;
+  }
+  100% {
+    left: auto;
+    right: 0;
+    width: 0%;
+  }
+}
+
 @keyframes tick-fade {
   from {
     opacity: 0;
@@ -178,11 +194,17 @@ body {
   animation: sphere-drift 5s var(--ease-out-smooth) infinite;
 }
 
+.animate-loading-bar {
+  animation: loading-bar 1s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-float,
   .animate-soft-pulse,
   .animate-sphere-drift,
-  .animate-needle-drop {
+  .animate-needle-drop,
+  .animate-loading-bar {
     animation: none;
+    width: 100%;
   }
 }

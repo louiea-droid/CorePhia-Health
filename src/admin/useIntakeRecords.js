@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { loadIntakeRecords } from "./firebase"
+import { deleteIntakeRecord, loadIntakeRecords } from "./firebase"
 
 // Shared by Dashboard and Patients so each owns its own fetch rather than
 // threading records through a context — fine at this scale (a two-person
@@ -18,5 +18,13 @@ export function useIntakeRecords() {
     }
   }, [])
 
-  return { records, error }
+  // Drops the record from local state only after Firestore confirms the
+  // delete, so a permission-denied (not superAdmin, or rules not yet
+  // deployed) leaves the table showing exactly what still exists.
+  async function removeRecord(id) {
+    await deleteIntakeRecord(id)
+    setRecords((current) => current?.filter((record) => record.id !== id) ?? current)
+  }
+
+  return { records, error, removeRecord }
 }

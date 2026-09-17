@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react"
 import { Helmet } from "react-helmet-async"
 import { Route, Routes } from "react-router-dom"
+import Activity from "./Activity"
 import Dashboard from "./Dashboard"
 import { getAdminRole, isConfigured, usingSeedData, watchAdminUser } from "./firebase"
 import { MenuIcon } from "./icons"
 import Loader from "./Loader"
 import Login from "./Login"
+import Messages from "./Messages"
+import MessagesNotification from "./MessagesNotification"
 import Patients from "./Patients"
+import Security from "./Security"
 import Sidebar from "./Sidebar"
 
-function AdminRoutes() {
+function AdminRoutes({ role, user }) {
   return (
     <Routes>
       <Route path="/admin" element={<Dashboard />} />
-      <Route path="/admin/patients" element={<Patients />} />
+      <Route path="/admin/patients" element={<Patients role={role} />} />
+      <Route path="/admin/messages" element={<Messages role={role} />} />
+      <Route path="/admin/activity" element={<Activity role={role} />} />
+      <Route path="/admin/security" element={<Security user={user} />} />
     </Routes>
   )
 }
@@ -49,6 +56,8 @@ function AdminChrome({ user, role, onSignOut, children }) {
     // instead, which individual pages (like Patients) can further subdivide
     // so only part of their own content scrolls.
     <div className="h-screen overflow-hidden bg-paper-50">
+      <MessagesNotification />
+
       <Sidebar
         user={user}
         role={role}
@@ -176,7 +185,7 @@ export default function AdminApp() {
       <>
         {head}
         <AdminChrome user={null} role="superAdmin" onSignOut={() => setDemoSignedOut(true)}>
-          <AdminRoutes />
+          <AdminRoutes role="superAdmin" user={null} />
         </AdminChrome>
       </>
     )
@@ -224,7 +233,7 @@ export default function AdminApp() {
     <>
       {head}
       <AdminChrome user={user} role={role}>
-        <AdminRoutes />
+        <AdminRoutes role={role} user={user} />
       </AdminChrome>
     </>
   )

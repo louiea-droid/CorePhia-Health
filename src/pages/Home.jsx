@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>CorePhiaHealth</title>
+        <title>CorePhia</title>
         <meta
           name="description"
           content="Corephia builds personalized weight loss programs around real nutrition coaching, structured exercise, and physician-guided medical support when appropriate. Start your program today."

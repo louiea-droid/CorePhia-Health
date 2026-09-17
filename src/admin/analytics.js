@@ -109,7 +109,6 @@ export function deriveMetrics(records) {
 
   return {
     total,
-    last7: countSince(records, 7),
     last30: countSince(records, 30),
     consentCompleteRate: total ? Math.round((consentComplete / total) * 100) : 0,
     avgCurrentWeight: average(currentWeights),

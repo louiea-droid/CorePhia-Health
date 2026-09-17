@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { deriveMetrics } from "./analytics"
-import { BarList, Card, ColumnChart, StackedBar, StatTile } from "./charts"
+import { BarList, Card, ColumnChart, Histogram, RankedList, StackedBar, StatTile, TagCloud } from "./charts"
+import { ChevronLeftIcon } from "./icons"
 import PageHeader from "./PageHeader"
 import PatientListModal from "./PatientListModal"
 import PatientModal from "./PatientModal"
@@ -25,7 +26,8 @@ export default function Dashboard() {
 
   // See tempFakeRecords.js — same real-but-empty fallback Patients.jsx uses,
   // so the charts here have something to render instead of sitting at zero.
-  const baseRecords = records && records.length === 0 ? TEMP_FAKE_RECORDS : records
+  const usingSampleFallback = Boolean(records && records.length === 0)
+  const baseRecords = usingSampleFallback ? TEMP_FAKE_RECORDS : records
   const metrics = useMemo(() => (baseRecords ? deriveMetrics(baseRecords) : null), [baseRecords])
 
   const drilldownMatches = useMemo(() => {
@@ -58,9 +60,11 @@ export default function Dashboard() {
         // overflow-x-clip so the hover tooltips, which are absolutely positioned
         // and can sit past a card's edge, never widen the page on a narrow screen.
         <div className="space-y-4 overflow-x-clip">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 3 columns, not 4: six tiles divides evenly into two full rows
+              of three at every breakpoint, with no dangling empty cells —
+              4 columns was the right fit for seven tiles, not six. */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatTile label="Total intakes" value={metrics.total} caption="All forms submitted to date" />
-            <StatTile label="Last 7 days" value={metrics.last7} caption="New patient intakes this week" />
             <StatTile label="Last 30 days" value={metrics.last30} caption="New patient intakes this month" />
             <StatTile
               label="Consent complete"
@@ -68,12 +72,6 @@ export default function Dashboard() {
               unit="%"
               caption="Telehealth + HIPAA acknowledged"
             />
-          </div>
-
-          {/* Three across rather than continuing the row of four above: seven
-              tiles in a four-column grid would leave one orphaned empty cell,
-              and these three read as their own group anyway. */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatTile
               label="Avg current weight"
               value={metrics.avgCurrentWeight ?? "—"}
@@ -94,17 +92,58 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card title="Intakes submitted per week" hint="Last 10 weeks" className="lg:col-span-2">
+          {/* Paired by chart type, not by topic: both are bar/column
+              distributions over a numeric or ordered axis, so they read as
+              one visual language. Weekly gets more width for its 10 columns;
+              weight spread only has 5 bins and reads fine narrower. */}
+          <div className="grid gap-4 lg:grid-cols-5">
+            <Card title="Intakes submitted per week" hint="Last 10 weeks" className="lg:col-span-3">
               <ColumnChart data={metrics.weekly} />
             </Card>
-            <Card title="Membership plan requested" hint={`${metrics.total} intakes`}>
+            <Card title="Current weight spread" hint="Self-reported at intake" className="lg:col-span-2">
+              <Histogram
+                data={metrics.currentWeightBands}
+                unit="lb"
+                onSelect={(item) =>
+                  setDrilldown({
+                    title: item.label,
+                    description: "Current weight",
+                    match: (record) => {
+                      const weight = Number(record.vitals?.currentWeightLb)
+                      return Number.isFinite(weight) && weight >= item.min && weight < item.max
+                    },
+                  })
+                }
+              />
+            </Card>
+          </div>
+
+          {/* Paired by shape, not by topic: both are compact ranked
+              summaries (a handful of rows, a count, a share) rather than the
+              taller detail breakdowns below — keeping them together instead
+              of next to a much taller neighbor is what stops either one
+              looking like it's floating in leftover space. */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card title="Membership plan requested">
               <StackedBar data={metrics.plans} total={metrics.total} />
+            </Card>
+            <Card title="Where patients are" hint="By state on the intake address">
+              <RankedList
+                data={metrics.states}
+                total={metrics.total}
+                onSelect={(item) =>
+                  setDrilldown({
+                    title: item.label,
+                    description: "State on the intake address",
+                    match: (record) => record.demographics?.address?.state === item.label,
+                  })
+                }
+              />
             </Card>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Card title="Reason for the visit" hint={`${metrics.total} intakes`}>
+            <Card title="Reason for the visit">
               <BarList
                 data={metrics.reasons}
                 total={metrics.total}
@@ -117,7 +156,7 @@ export default function Dashboard() {
                 }
               />
             </Card>
-            <Card title="Current exercise" hint={`${metrics.total} intakes`}>
+            <Card title="Current exercise">
               <BarList
                 data={metrics.exercise}
                 total={metrics.total}
@@ -130,7 +169,7 @@ export default function Dashboard() {
                 }
               />
             </Card>
-            <Card title="Tobacco use" hint={`${metrics.total} intakes`}>
+            <Card title="Tobacco use">
               <BarList
                 data={metrics.tobacco}
                 total={metrics.total}
@@ -147,9 +186,8 @@ export default function Dashboard() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Conditions patients reported" hint="Patients may report more than one">
-              <BarList
+              <TagCloud
                 data={metrics.conditions}
-                total={metrics.total}
                 emptyLabel="No conditions reported yet"
                 onSelect={(item) =>
                   setDrilldown({
@@ -161,9 +199,8 @@ export default function Dashboard() {
               />
             </Card>
             <Card title="Family history reported" hint="Patients may report more than one">
-              <BarList
+              <TagCloud
                 data={metrics.familyHistory}
-                total={metrics.total}
                 emptyLabel="No family history reported yet"
                 onSelect={(item) =>
                   setDrilldown({
@@ -176,44 +213,15 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="grid items-start gap-4 lg:grid-cols-2">
-            <Card title="Where patients are" hint="By state on the intake address">
-              <BarList
-                data={metrics.states}
-                total={metrics.total}
-                onSelect={(item) =>
-                  setDrilldown({
-                    title: item.label,
-                    description: "State on the intake address",
-                    match: (record) => record.demographics?.address?.state === item.label,
-                  })
-                }
-              />
-            </Card>
-            <Card title="Current weight spread" hint="Self-reported at intake">
-              <BarList
-                data={metrics.currentWeightBands}
-                total={metrics.total}
-                emptyLabel="No weights reported yet"
-                onSelect={(item) =>
-                  setDrilldown({
-                    title: item.label,
-                    description: "Current weight",
-                    match: (record) => {
-                      const weight = Number(record.vitals?.currentWeightLb)
-                      return Number.isFinite(weight) && weight >= item.min && weight < item.max
-                    },
-                  })
-                }
-              />
-            </Card>
-          </div>
-
           <Card
             title="Most recent intakes"
             hint={
-              <Link to="/admin/patients" className="font-medium text-accent-dark hover:opacity-70">
-                See all patients →
+              <Link
+                to="/admin/patients"
+                className="inline-flex items-center gap-1 font-medium text-accent-dark hover:opacity-70"
+              >
+                See all patients
+                <ChevronLeftIcon className="size-3.5 rotate-180" />
               </Link>
             }
           >
@@ -226,7 +234,7 @@ export default function Dashboard() {
         title={drilldown?.title}
         subtitle={
           drilldown &&
-          `${drilldownMatches.length} patient${drilldownMatches.length === 1 ? "" : "s"} · ${drilldown.description}`
+          `${drilldown.description}: ${drilldownMatches.length} patient${drilldownMatches.length === 1 ? "" : "s"}`
         }
         records={drilldownMatches}
         onSelectPatient={(record) => {
@@ -236,7 +244,11 @@ export default function Dashboard() {
         onClose={() => setDrilldown(null)}
       />
 
-      <PatientModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+      <PatientModal
+        record={selectedRecord}
+        onClose={() => setSelectedRecord(null)}
+        audit={!usingSampleFallback}
+      />
     </div>
   )
 }

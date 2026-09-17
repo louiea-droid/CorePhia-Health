@@ -9,9 +9,9 @@ function Bar({ className = "" }) {
 
 export function StatTileSkeleton() {
   return (
-    <div className="rounded-2xl border border-ink-950/10 bg-white p-4">
-      <Bar className="h-2.5 w-24" />
-      <Bar className="mt-2.5 h-7 w-14" />
+    <div className="rounded-2xl border border-ink-950/10 border-t-2 border-t-accent-dark/40 bg-white p-4">
+      <Bar className="h-3 w-24" />
+      <Bar className="mt-2.5 h-8 w-14" />
       <Bar className="mt-2.5 h-2.5 w-32" />
     </div>
   )

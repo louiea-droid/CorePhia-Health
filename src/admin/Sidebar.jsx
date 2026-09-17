@@ -1,12 +1,26 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import ConfirmDialog from "./ConfirmDialog"
-import { ChevronLeftIcon, CloseIcon, DashboardIcon, PatientsIcon, PersonIcon, SignOutIcon } from "./icons"
+import {
+  ActivityIcon,
+  ChevronLeftIcon,
+  CloseIcon,
+  DashboardIcon,
+  MailIcon,
+  PatientsIcon,
+  PersonIcon,
+  SignOutIcon,
+} from "./icons"
 import { signOutAdmin } from "./firebase"
 
+// `superAdminOnly` mirrors firestore.rules rather than adding a second source
+// of truth: a plain admin following the URL directly still gets refused by
+// Firestore, this just keeps a link they can't use out of their sidebar.
 const NAV_ITEMS = [
   { label: "Dashboard", icon: DashboardIcon, to: "/admin" },
   { label: "Patients", icon: PatientsIcon, to: "/admin/patients" },
+  { label: "Messages", icon: MailIcon, to: "/admin/messages" },
+  { label: "Activity", icon: ActivityIcon, to: "/admin/activity", superAdminOnly: true },
 ]
 
 const ROLE_LABELS = {
@@ -105,7 +119,7 @@ export default function Sidebar({
 
         <nav aria-label="Admin" className="flex-1 overflow-y-auto p-3">
           <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.filter((item) => !item.superAdminOnly || role === "superAdmin").map((item) => {
               const current = location.pathname === item.to
               return (
                 <li key={item.label}>
@@ -149,9 +163,15 @@ export default function Sidebar({
             <span className={collapsibleLabelClass(collapsed, "lg:max-w-28")}>Collapse</span>
           </button>
 
-          <div
-            className="mt-1 flex items-center gap-3 rounded-xl px-2 py-2"
-            title={collapsed && user ? `${user.email} · ${roleLabel(role)}` : undefined}
+          {/* The account row doubles as the way into this account's own
+              settings — the conventional place to look for them, and it keeps
+              a per-account page out of the main nav, which lists data
+              sections. */}
+          <Link
+            to="/admin/security"
+            onClick={onCloseMobile}
+            title={collapsed && user ? `${user.email} — ${roleLabel(role)}` : undefined}
+            className="mt-1 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors duration-200 hover:bg-ink-950/5"
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-paper-100 text-ink-950/70">
               <PersonIcon className="size-4" />
@@ -162,7 +182,7 @@ export default function Sidebar({
                 {roleLabel(role)}
               </p>
             </div>
-          </div>
+          </Link>
 
           <button
             type="button"

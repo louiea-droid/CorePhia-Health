@@ -153,3 +153,5 @@ expanded EMR-shaped intake form · compliance copy fixes · accessibility and vi
 - Repeating a CTA down a long page is fine; **inconsistent labels for the same action are not.**
   The canonical label is "Start your intake" ("Get started" in the header, "Choose {plan}" on
   pricing cards, which pass `?plan=` and preselect in the form).
+
+  

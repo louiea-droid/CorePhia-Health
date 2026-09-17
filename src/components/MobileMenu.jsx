@@ -5,6 +5,7 @@ import { ActivityArt, CareShieldArt, MealPlateArt } from "./Artwork"
 import { ChevronRightIcon, CloseIcon, PersonIcon } from "./icons"
 
 const exploreLinks = [
+  { label: "Home", to: "/" },
   { label: "Weight Loss Programs", href: "/#programs" },
   { label: "Membership Pricing", href: "/#pricing" },
   { label: "About Us", to: "/about" },

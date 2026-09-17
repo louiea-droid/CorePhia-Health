@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Helmet } from "react-helmet-async"
 import { Link, useSearchParams } from "react-router-dom"
+import DatePicker from "./DatePicker"
 import { CheckCircleIcon } from "./icons"
+import Select from "./Select"
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
@@ -185,30 +187,42 @@ function buildIntakeRecord(form) {
   }
 }
 
-// TODO: no destination exists yet. Hand this record to the EMR's intake endpoint
-// (or a BAA-covered intake service) once one is selected. Until that is wired up
-// nothing leaves the browser, so the form must not go live in this state — a
-// patient would be told their information was received when it was not.
-function submitIntakeRecord(record) {
-  return Promise.resolve(record)
+// Imported on submit rather than at module scope so the Firebase SDK stays out
+// of the main bundle — the same reason App.jsx lazy-loads the admin and account
+// routes. Someone reading the intake page downloads nothing extra until they
+// actually send it.
+async function submitIntakeRecord(record) {
+  const { sendIntakeRecord } = await import("../lib/intakeSubmission")
+  return sendIntakeRecord(record)
 }
 
 const PLANS = ["Core", "Core+", "Core Complete"]
 
 export default function PatientIntakeForm() {
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState("idle")
   const [searchParams] = useSearchParams()
   const today = new Date().toISOString().slice(0, 10)
   const requestedPlan = searchParams.get("plan")
   const selectedPlan = PLANS.includes(requestedPlan) ? requestedPlan : ""
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    submitIntakeRecord(buildIntakeRecord(event.currentTarget))
-    setSubmitted(true)
+    // Read the form before awaiting: currentTarget is only valid for the
+    // lifetime of the event dispatch.
+    const record = buildIntakeRecord(event.currentTarget)
+    setStatus("sending")
+    try {
+      await submitIntakeRecord(record)
+      setStatus("sent")
+    } catch (cause) {
+      // Never fall through to the confirmation screen on a failure — it tells
+      // the patient a care team has their information when nothing was stored.
+      console.error("Intake submission failed:", cause.code ?? cause.message)
+      setStatus("error")
+    }
   }
 
-  if (submitted) {
+  if (status === "sent") {
     return (
       <section id="intake-form" className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <Helmet>
@@ -268,24 +282,42 @@ export default function PatientIntakeForm() {
             <input name="lastName" type="text" required autoComplete="family-name" className={inputClass} />
           </Field>
           <Field label="Date of birth" required>
-            <input name="dob" type="date" required autoComplete="bday" className={inputClass} />
+            <DatePicker name="dob" required />
           </Field>
           <Field label="Sex assigned at birth" required>
-            <select name="sexAssigned" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select one
-              </option>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
-              <option value="intersex">Intersex</option>
-              <option value="prefer-not-to-say">Prefer not to say</option>
-            </select>
+            <Select
+              name="sexAssigned"
+              required
+              placeholder="Select one"
+              options={[
+                { value: "female", label: "Female" },
+                { value: "male", label: "Male" },
+                { value: "intersex", label: "Intersex" },
+                { value: "prefer-not-to-say", label: "Prefer not to say" },
+              ]}
+            />
           </Field>
           <Field label="Phone number" required>
             <input name="phone" type="tel" required autoComplete="tel" className={inputClass} />
           </Field>
           <Field label="Email address" required>
-            <input name="email" type="email" required autoComplete="email" className={inputClass} />
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              // type="email" alone still accepts things like "patient@localhost"
+              // — no dot, no real domain — since the browser's own email
+              // constraint doesn't require one. This requires an actual
+              // dot-separated domain and a 2+ letter TLD before it'll validate.
+              // The hyphens are escaped because browsers compile `pattern` with
+              // the regex `v` flag, where a literal `-` in a character class is
+              // a syntax error — unescaped, the whole pattern silently fails to
+              // compile and no validation happens at all.
+              pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
+              title="Enter a full email address, like name@example.com"
+              className={inputClass}
+            />
           </Field>
           <div className="sm:col-span-2">
             <Field label="Street address" required>
@@ -297,16 +329,7 @@ export default function PatientIntakeForm() {
           </Field>
           <div className="grid grid-cols-2 gap-5">
             <Field label="State" required>
-              <select name="state" required autoComplete="address-level1" defaultValue="" className={inputClass}>
-                <option value="" disabled>
-                  State
-                </option>
-                {US_STATES.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
+              <Select name="state" required placeholder="State" options={US_STATES} />
             </Field>
             <Field label="ZIP code" required>
               <input
@@ -498,44 +521,16 @@ export default function PatientIntakeForm() {
           description="Your answers here shape the nutrition and exercise side of your plan."
         >
           <Field label="Tobacco use" required>
-            <select name="tobacco" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select one
-              </option>
-              {TOBACCO_STATUS.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <Select name="tobacco" required placeholder="Select one" options={TOBACCO_STATUS} />
           </Field>
           <Field label="Alcohol use" required>
-            <select name="alcohol" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select one
-              </option>
-              {ALCOHOL_USE.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <Select name="alcohol" required placeholder="Select one" options={ALCOHOL_USE} />
           </Field>
           <Field label="Water intake" required>
-            <select name="waterIntake" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select one
-              </option>
-              {WATER_INTAKE.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <Select name="waterIntake" required placeholder="Select one" options={WATER_INTAKE} />
           </Field>
           <Field label="Exercise" required>
-            <select name="exerciseFrequency" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select one
-              </option>
-              {EXERCISE_FREQUENCY.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <Select name="exerciseFrequency" required placeholder="Select one" options={EXERCISE_FREQUENCY} />
           </Field>
           <Field label="Estimated daily calories">
             <input
@@ -564,39 +559,25 @@ export default function PatientIntakeForm() {
 
         <SectionCard title="Appointment details">
           <Field label="Membership plan">
-            <select name="plan" defaultValue={selectedPlan} className={inputClass}>
-              <option value="">I'm not sure yet</option>
-              {PLANS.map((plan) => (
-                <option key={plan}>{plan}</option>
-              ))}
-            </select>
+            <Select
+              name="plan"
+              defaultValue={selectedPlan}
+              options={[{ value: "", label: "I'm not sure yet" }, ...PLANS.map((plan) => ({ value: plan, label: plan }))]}
+            />
           </Field>
           <Field label="Reason for visit" required>
-            <select name="appointmentType" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select an appointment type
-              </option>
-              {APPOINTMENT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+            <Select
+              name="appointmentType"
+              required
+              placeholder="Select an appointment type"
+              options={APPOINTMENT_TYPES}
+            />
           </Field>
           <Field label="Preferred time" required>
-            <select name="preferredTime" required defaultValue="" className={inputClass}>
-              <option value="" disabled>
-                Select a preferred time
-              </option>
-              {PREFERRED_TIMES.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            <Select name="preferredTime" required placeholder="Select a preferred time" options={PREFERRED_TIMES} />
           </Field>
           <Field label="Preferred date" required>
-            <input name="preferredDate" type="date" required min={today} className={inputClass} />
+            <DatePicker name="preferredDate" required min={today} />
           </Field>
           <div className="sm:col-span-2">
             <Field label="Additional notes">
@@ -649,11 +630,22 @@ export default function PatientIntakeForm() {
           </Field>
         </SectionCard>
 
+        {status === "error" && (
+          <div role="alert" className="rounded-2xl border border-brand-dark/30 bg-paper-100 p-5">
+            <p className="font-medium text-ink-950">We could not send your intake form.</p>
+            <p className="mt-1 text-sm text-ink-950/70">
+              Nothing was submitted, so your answers are still here — try again in a moment. If it keeps
+              failing, call us and we will take your intake over the phone.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full rounded-full bg-ink-950 py-4 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 sm:w-auto sm:px-10"
+          disabled={status === "sending"}
+          className="w-full rounded-full bg-ink-950 py-4 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 disabled:opacity-60 sm:w-auto sm:px-10"
         >
-          Submit intake form
+          {status === "sending" ? "Sending…" : "Submit intake form"}
         </button>
 
         <p className="text-xs text-ink-950/50">

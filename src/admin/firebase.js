@@ -1,12 +1,26 @@
 import { initializeApp } from "firebase/app"
 import {
   getAuth,
+  getMultiFactorResolver,
+  multiFactor,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  TotpMultiFactorGenerator,
 } from "firebase/auth"
-import { collection, doc, getDoc, getDocs, getFirestore, orderBy, query } from "firebase/firestore"
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  limit,
+  orderBy,
+  query,
+} from "firebase/firestore"
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -18,7 +32,16 @@ const config = {
 }
 
 export const INTAKE_COLLECTION = "intakeRecords"
+export const MESSAGES_COLLECTION = "contactMessages"
+export const AUDIT_COLLECTION = "auditLog"
 export const USERS_COLLECTION = "user"
+
+export const AUDIT_ACTIONS = {
+  viewIntake: "view_intake_record",
+  deleteIntake: "delete_intake_record",
+  viewMessage: "view_contact_message",
+  deleteMessage: "delete_contact_message",
+}
 
 export const isConfigured = Boolean(config.apiKey && config.projectId)
 
@@ -55,6 +78,64 @@ export async function resetAdminPassword(email) {
   await sendPasswordResetEmail(auth, email)
 }
 
+// --- Second factor ---------------------------------------------------------
+// These accounts can open any patient chart, so a leaked or reused password
+// should not be enough on its own. TOTP (an authenticator app) rather than SMS:
+// nothing to collect but a code, no carrier in the path, and no phone number
+// stored against a staff account.
+//
+// This needs Firebase Authentication with Identity Platform on the project,
+// with TOTP switched on. Until that is enabled in the console, enrolment fails
+// with auth/operation-not-allowed. Accounts with no second factor sign in
+// exactly as before either way — signInAdmin above is deliberately unchanged.
+
+// enrolledFactors on a cached user object doesn't change just because we
+// enrolled or removed one — the token has to be refreshed for the new list to
+// show up, so callers re-read through this after either operation.
+export async function reloadAdminUser() {
+  if (!auth?.currentUser) return null
+  await auth.currentUser.reload()
+  return auth.currentUser
+}
+
+export function listEnrolledFactors(user) {
+  if (!user) return []
+  return multiFactor(user).enrolledFactors
+}
+
+export async function startTotpEnrollment() {
+  if (!auth?.currentUser) throw new Error("Not signed in.")
+  const session = await multiFactor(auth.currentUser).getSession()
+  return TotpMultiFactorGenerator.generateSecret(session)
+}
+
+export async function finishTotpEnrollment(secret, code, displayName = "Authenticator app") {
+  if (!auth?.currentUser) throw new Error("Not signed in.")
+  const assertion = TotpMultiFactorGenerator.assertionForEnrollment(secret, code)
+  await multiFactor(auth.currentUser).enroll(assertion, displayName)
+}
+
+export async function removeEnrolledFactor(factorUid) {
+  if (!auth?.currentUser) throw new Error("Not signed in.")
+  await multiFactor(auth.currentUser).unenroll(factorUid)
+}
+
+// Firebase reports "this account needs its second factor" by throwing out of
+// signInWithEmailAndPassword. That isn't a failed sign-in, it's an unfinished
+// one, so this turns that specific error into the resolver the caller needs to
+// finish it — and returns null for every other error, which stays a failure.
+export function getTotpResolver(error) {
+  if (!auth || error?.code !== "auth/multi-factor-auth-required") return null
+  return getMultiFactorResolver(auth, error)
+}
+
+export async function completeTotpSignIn(resolver, code) {
+  const hint = resolver.hints.find((factor) => factor.factorId === TotpMultiFactorGenerator.FACTOR_ID)
+  if (!hint) throw new Error("This account's second factor isn't an authenticator app.")
+  const assertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, code)
+  await resolver.resolveSignIn(assertion)
+}
+
 // The tier comes from a role document at user/{uid}, assigned by hand in
 // the Firestore Console — never from anything the browser can choose. This
 // decides what the sidebar shows; firestore.rules enforces the same lookup
@@ -84,6 +165,15 @@ export async function getAdminRole(user) {
   }
 }
 
+// firestore.rules restricts this to superAdmin — a signed-in admin without
+// that role gets permission-denied from Firestore itself even if this were
+// somehow called, so the UI-side role check is a courtesy, not the boundary.
+export async function deleteIntakeRecord(id) {
+  if (usingSeedData) return
+  if (!db) throw new Error("Firebase is not configured.")
+  await deleteDoc(doc(db, INTAKE_COLLECTION, id))
+}
+
 export async function loadIntakeRecords() {
   // Imported dynamically so the sample records are not bundled into a
   // production build, where this branch is unreachable anyway.
@@ -93,5 +183,61 @@ export async function loadIntakeRecords() {
   }
   if (!db) throw new Error("Firebase is not configured.")
   const snapshot = await getDocs(query(collection(db, INTAKE_COLLECTION), orderBy("submittedAt", "desc")))
+  return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
+}
+
+// Every time a staff member opens or deletes a patient record, this writes who
+// did it, to what, and when. firestore.rules makes the collection append-only
+// at every tier, so nothing here (or anywhere else in the client) can go back
+// and tidy the trail afterwards.
+//
+// Deliberately never throws: a failed audit write must not stop care staff
+// opening a chart mid-appointment. It is logged loudly instead, because a
+// silent gap in an audit trail is exactly what an investigation would ask
+// about — this is the trade-off to revisit if a formal risk assessment calls
+// for hard-blocking access when auditing is unavailable.
+export async function recordAuditEvent({ action, targetCollection, targetId, targetLabel = "" }) {
+  if (usingSeedData) return
+  if (!db || !auth?.currentUser) return
+  try {
+    await addDoc(collection(db, AUDIT_COLLECTION), {
+      actorUid: auth.currentUser.uid,
+      actorEmail: auth.currentUser.email ?? "",
+      action,
+      targetCollection,
+      targetId,
+      targetLabel,
+      at: new Date().toISOString(),
+    })
+  } catch (cause) {
+    console.error("Audit log write failed:", cause.code ?? cause.message)
+  }
+}
+
+// superAdmin-only per the rules. Capped rather than unbounded: this collection
+// grows with every record opened, so the page reads a recent window instead of
+// the whole history.
+export async function loadAuditLog(entryLimit = 250) {
+  if (usingSeedData) return []
+  if (!db) throw new Error("Firebase is not configured.")
+  const snapshot = await getDocs(query(collection(db, AUDIT_COLLECTION), orderBy("at", "desc"), limit(entryLimit)))
+  return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
+}
+
+// Same rules restriction as deleteIntakeRecord: superAdmin only, enforced by
+// Firestore itself.
+export async function deleteContactMessage(id) {
+  if (usingSeedData) return
+  if (!db) throw new Error("Firebase is not configured.")
+  await deleteDoc(doc(db, MESSAGES_COLLECTION, id))
+}
+
+// No demo/seed fallback here (unlike loadIntakeRecords) — this is a smaller,
+// secondary surface, so the empty state in dev-without-Firebase just reads
+// "No messages yet" rather than needing its own fake dataset to review.
+export async function loadContactMessages() {
+  if (usingSeedData) return []
+  if (!db) throw new Error("Firebase is not configured.")
+  const snapshot = await getDocs(query(collection(db, MESSAGES_COLLECTION), orderBy("submittedAt", "desc")))
   return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
 }

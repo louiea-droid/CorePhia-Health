@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react"
+import ConfirmDialog from "./ConfirmDialog"
 import { PAGE_SIZE_OPTIONS } from "./constants"
+import { AUDIT_ACTIONS, INTAKE_COLLECTION, recordAuditEvent } from "./firebase"
 import PageHeader from "./PageHeader"
 import Pagination from "./Pagination"
 import PatientModal from "./PatientModal"
@@ -20,9 +22,12 @@ function readStoredPageSize() {
   }
 }
 
-export default function Patients() {
-  const { records, error } = useIntakeRecords()
+export default function Patients({ role }) {
+  const { records, error, removeRecord } = useIntakeRecords()
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
   const [pageSize, setPageSize] = useState(readStoredPageSize)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
@@ -30,6 +35,36 @@ export default function Patients() {
 
   const usingSampleFallback = records && records.length === 0
   const baseRecords = usingSampleFallback ? TEMP_FAKE_RECORDS : records
+  // Sample fallback rows aren't real Firestore documents — deleting one would
+  // either no-op against a nonexistent id or (worse) collide with an unrelated
+  // real id, so the option is hidden rather than wired to something misleading.
+  const canDelete = role === "superAdmin" && !usingSampleFallback
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await removeRecord(pendingDelete.id)
+      // Logged after the delete succeeds, not before: an attempt that Firestore
+      // refused isn't a deletion, and recording it as one would misrepresent
+      // what actually happened to the record.
+      recordAuditEvent({
+        action: AUDIT_ACTIONS.deleteIntake,
+        targetCollection: INTAKE_COLLECTION,
+        targetId: pendingDelete.id,
+        targetLabel: [pendingDelete.demographics?.firstName, pendingDelete.demographics?.lastName]
+          .filter(Boolean)
+          .join(" "),
+      })
+      setPendingDelete(null)
+      setSelectedRecord(null)
+    } catch (cause) {
+      setDeleteError(cause.code ?? cause.message ?? "Something went wrong deleting this record.")
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const filteredRecords = useMemo(() => {
     if (!baseRecords) return null
@@ -142,6 +177,7 @@ export default function Patients() {
                 records={pageRecords}
                 onSelect={setSelectedRecord}
                 minRows={pageSize === 10 ? 10 : 0}
+                rankOffset={(currentPage - 1) * pageSize}
               />
             </div>
           )}
@@ -159,7 +195,32 @@ export default function Patients() {
         </section>
       )}
 
-      <PatientModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+      <PatientModal
+        record={selectedRecord}
+        onClose={() => setSelectedRecord(null)}
+        canDelete={canDelete}
+        onRequestDelete={setPendingDelete}
+        // Sample fallback rows aren't real records, so opening one isn't a
+        // real access event — keeping them out stops the audit trail filling
+        // with entries that point at documents that never existed.
+        audit={!usingSampleFallback}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete this intake record?"
+        description={
+          deleteError ??
+          `This permanently deletes ${pendingDelete ? `${pendingDelete.demographics?.firstName ?? "this patient"}'s` : "this"} intake record. This cannot be undone.`
+        }
+        confirmLabel={deleting ? "Deleting…" : "Delete"}
+        confirmDisabled={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setPendingDelete(null)
+          setDeleteError(null)
+        }}
+      />
     </div>
   )
 }

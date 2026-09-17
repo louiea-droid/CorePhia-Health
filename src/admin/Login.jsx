@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { resetAdminPassword, signInAdmin } from "./firebase"
+import { completeTotpSignIn, getTotpResolver, resetAdminPassword, signInAdmin } from "./firebase"
 import { EyeIcon, EyeOffIcon } from "./icons"
 
 const fieldClass =
@@ -94,7 +94,77 @@ function ResetPasswordForm({ initialEmail, onBack }) {
   )
 }
 
-function SignInForm({ onForgotPassword }) {
+// Shown only for accounts that have an authenticator app enrolled. The
+// password step already succeeded by this point — Firebase is holding the
+// half-finished sign-in in `resolver` until the code confirms it.
+function TotpChallengeForm({ resolver, onCancel }) {
+  const [code, setCode] = useState("")
+  const [error, setError] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      await completeTotpSignIn(resolver, code.trim())
+    } catch (cause) {
+      console.error("Second factor rejected:", cause.code ?? cause.message)
+      setError("That code wasn't accepted. Codes expire quickly — try the current one.")
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <p className="font-serif text-2xl text-ink-950">Enter your code</p>
+      <p className="mt-2 text-sm text-ink-950/55">
+        Open your authenticator app and enter the 6-digit code for Corephia Admin.
+      </p>
+
+      <label className="mt-6 block">
+        <span className="mb-1.5 block text-sm font-medium text-ink-950/80">Verification code</span>
+        <input
+          type="text"
+          required
+          autoFocus
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          placeholder="123456"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          className={`${fieldClass} tracking-[0.4em]`}
+        />
+      </label>
+
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-brand-dark">
+          {error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={busy}
+        className="mt-6 w-full rounded-full bg-ink-950 py-3.5 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 disabled:opacity-60"
+      >
+        {busy ? "Checking…" : "Verify and sign in"}
+      </button>
+
+      <button
+        type="button"
+        onClick={onCancel}
+        className="mt-4 block w-full text-center text-sm font-medium text-ink-950/60 transition-colors duration-200 hover:text-ink-950"
+      >
+        ← Back to sign in
+      </button>
+    </form>
+  )
+}
+
+function SignInForm({ onForgotPassword, onSecondFactorRequired }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
@@ -108,6 +178,14 @@ function SignInForm({ onForgotPassword }) {
     try {
       await signInAdmin(email, password)
     } catch (cause) {
+      // An account with a second factor lands here too, but that isn't a
+      // rejected sign-in — it's an unfinished one, so it hands off to the code
+      // prompt rather than showing a failure.
+      const resolver = getTotpResolver(cause)
+      if (resolver) {
+        onSecondFactorRequired(resolver)
+        return
+      }
       // The UI message stays deliberately vague — telling an attacker which
       // half was wrong helps them enumerate valid accounts — but the real
       // Firebase error code is still worth having in the console for
@@ -187,6 +265,7 @@ export default function Login({ notice }) {
   // carries over if they tap "Forgot password?" instead of retyping it.
   const [mode, setMode] = useState("sign-in")
   const [resetEmail, setResetEmail] = useState("")
+  const [totpResolver, setTotpResolver] = useState(null)
   const surfaceRef = useRef(null)
   const orbRef = useRef(null)
 
@@ -223,14 +302,28 @@ export default function Login({ notice }) {
             <img src="/cp-mark.webp" alt="" className="h-8 w-auto object-contain" />
             <p className="font-serif text-2xl text-ink-950">Corephia Admin</p>
           </div>
-          {mode === "sign-in" ? (
+          {mode === "sign-in" && (
             <SignInForm
               onForgotPassword={(email) => {
                 setResetEmail(email)
                 setMode("reset")
               }}
+              onSecondFactorRequired={(resolver) => {
+                setTotpResolver(resolver)
+                setMode("totp")
+              }}
             />
-          ) : (
+          )}
+          {mode === "totp" && (
+            <TotpChallengeForm
+              resolver={totpResolver}
+              onCancel={() => {
+                setTotpResolver(null)
+                setMode("sign-in")
+              }}
+            />
+          )}
+          {mode === "reset" && (
             <ResetPasswordForm initialEmail={resetEmail} onBack={() => setMode("sign-in")} />
           )}
         </div>

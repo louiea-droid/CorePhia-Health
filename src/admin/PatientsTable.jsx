@@ -1,33 +1,28 @@
+import { formatClockTime, formatRelativeTime, useRelativeTimeClock } from "./relativeTime"
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
-// Shared by Dashboard's "Most recent intakes" preview and the full Patients
-// list — same columns, same whole-row click target opening PatientModal.
-//
-// table-layout: fixed + explicit <col> widths (rather than the browser's
-// default content-based auto layout) so columns land in the same place on
-// every page regardless of how wide that page's actual text happens to be —
-// auto layout visibly reflowed columns between a page full of "Core
-// Complete" and one mostly "Core".
-//
-// minRows pads the body with blank filler rows (four separate <td>s, not one
-// colSpan cell — a colSpan cell doesn't participate in per-column sizing the
-// same way, which was its own source of column drift) up to that count when
-// there are fewer real records — e.g. a short last page. Filler rows reuse
-// the exact same <td className="py-4"> markup as real ones, so the browser
-// renders them at an identical height with zero pixel math on our end.
-export default function PatientsTable({ records, onSelect, minRows = 0 }) {
+// Mirrors PatientsTable's own row order: the 10 most recent submissions overall
+// (not just on the visible page) read as "how long ago", so a chart that just
+// came in visibly reads as new. rankOffset is how many rows are ahead of this
+// page in the full sorted list — 0 on page 1, pageSize on page 2, and so on —
+// so the cutoff is correct regardless of which page is showing.
+export default function PatientsTable({ records, onSelect, minRows = 0, rankOffset = 0 }) {
   const fillerRowCount = Math.max(0, minRows - records.length)
+  const anyRecentOnPage = records.some((_, index) => rankOffset + index < 10)
+  const now = useRelativeTimeClock(anyRecentOnPage)
 
   return (
     <div className="scrollbar-thin -mx-4 overflow-x-auto px-4">
-      <table className="w-full min-w-xl table-fixed text-left text-sm">
+      <table className="w-full min-w-2xl table-fixed text-left text-sm">
         <colgroup>
-          <col className="w-[26%]" />
-          <col className="w-[18%]" />
-          <col className="w-[18%]" />
-          <col className="w-[38%]" />
+          <col className="w-[24%]" />
+          <col className="w-[16%]" />
+          <col className="w-[14%]" />
+          <col className="w-[16%]" />
+          <col className="w-[30%]" />
         </colgroup>
         <thead>
           <tr className="sticky top-0 z-10 border-b border-ink-950/10 bg-white text-xs tracking-wide text-ink-950/45 uppercase">
@@ -38,6 +33,9 @@ export default function PatientsTable({ records, onSelect, minRows = 0 }) {
               Submitted
             </th>
             <th scope="col" className="pb-2 font-medium">
+              Time
+            </th>
+            <th scope="col" className="pb-2 font-medium">
               Plan
             </th>
             <th scope="col" className="pb-2 font-medium">
@@ -46,8 +44,9 @@ export default function PatientsTable({ records, onSelect, minRows = 0 }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-ink-950/5">
-          {records.map((record) => {
+          {records.map((record, index) => {
             const name = `${record.demographics?.firstName ?? ""} ${record.demographics?.lastName ?? ""}`.trim()
+            const isRecent = rankOffset + index < 10
             return (
               <tr
                 key={record.id}
@@ -67,6 +66,9 @@ export default function PatientsTable({ records, onSelect, minRows = 0 }) {
                 <td className="truncate py-4 whitespace-nowrap text-ink-950/60">
                   {formatDate(record.submittedAt)}
                 </td>
+                <td className="truncate py-4 tabular-nums whitespace-nowrap text-ink-950/60">
+                  {isRecent ? formatRelativeTime(record.submittedAt, now) : formatClockTime(record.submittedAt)}
+                </td>
                 <td className="truncate py-4 text-ink-950/60">{record.visit?.membershipPlan || "—"}</td>
                 <td className="truncate py-4 text-ink-950/60">{record.visit?.reason || "—"}</td>
               </tr>
@@ -75,6 +77,7 @@ export default function PatientsTable({ records, onSelect, minRows = 0 }) {
           {Array.from({ length: fillerRowCount }).map((_, index) => (
             <tr key={`filler-${index}`} aria-hidden="true">
               <td className="py-4">&nbsp;</td>
+              <td className="py-4" />
               <td className="py-4" />
               <td className="py-4" />
               <td className="py-4" />

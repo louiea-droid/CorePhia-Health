@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
-import { CloseIcon } from "./icons"
+import { AUDIT_ACTIONS, INTAKE_COLLECTION, recordAuditEvent } from "./firebase"
+import { CloseIcon, TrashIcon } from "./icons"
 
 function formatDate(value, options) {
   if (!value) return null
@@ -42,9 +43,32 @@ function Section({ title, children }) {
   )
 }
 
-export default function PatientModal({ record, onClose }) {
+export default function PatientModal({ record, onClose, canDelete, onRequestDelete, audit = true }) {
   const closeButtonRef = useRef(null)
   const open = Boolean(record)
+
+  // Opening a chart is the access event worth recording, so it's logged here
+  // rather than at each call site — the patients table, the dashboard's recent
+  // list and every chart drilldown all open this one component, and none of
+  // them can forget to log. The ref stops a single open being recorded twice
+  // (StrictMode runs effects twice in development) while still letting a
+  // genuine second open of the same chart record a second access, because the
+  // ref clears when the modal closes.
+  const loggedRecordIdRef = useRef(null)
+  useEffect(() => {
+    if (!record?.id) {
+      loggedRecordIdRef.current = null
+      return
+    }
+    if (!audit || loggedRecordIdRef.current === record.id) return
+    loggedRecordIdRef.current = record.id
+    recordAuditEvent({
+      action: AUDIT_ACTIONS.viewIntake,
+      targetCollection: INTAKE_COLLECTION,
+      targetId: record.id,
+      targetLabel: [record.demographics?.firstName, record.demographics?.lastName].filter(Boolean).join(" "),
+    })
+  }, [record, audit])
 
   useEffect(() => {
     if (!open) return
@@ -92,15 +116,27 @@ export default function PatientModal({ record, onClose }) {
                 Submitted {formatDate(record.submittedAt, { month: "long", day: "numeric", year: "numeric" })}
               </p>
             </div>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="shrink-0 rounded-lg p-1.5 text-ink-950/50 transition-colors duration-200 hover:bg-ink-950/5 hover:text-ink-950"
-            >
-              <CloseIcon className="size-5" />
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => onRequestDelete(record)}
+                  aria-label="Delete this intake record"
+                  className="rounded-lg p-1.5 text-ink-950/50 transition-colors duration-200 hover:bg-brand-dark/10 hover:text-brand-dark"
+                >
+                  <TrashIcon className="size-5" />
+                </button>
+              )}
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="rounded-lg p-1.5 text-ink-950/50 transition-colors duration-200 hover:bg-ink-950/5 hover:text-ink-950"
+              >
+                <CloseIcon className="size-5" />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-5 overflow-y-auto px-6 py-5 sm:px-8">

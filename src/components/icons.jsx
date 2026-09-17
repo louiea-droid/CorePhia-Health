@@ -14,6 +14,23 @@ export function ChevronRightIcon(props) {
   )
 }
 
+export function ChevronDownIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true" {...props}>
+      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function CalendarIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
+      <rect x="3.5" y="5" width="17" height="16" rx="3" />
+      <path d="M3.5 9.5h17M8 3v3.4M16 3v3.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export function ArrowRightIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true" {...props}>
@@ -165,6 +182,15 @@ export function LockIcon(props) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
       <rect x="5" y="11" width="14" height="10" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function MailIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" {...props}>
+      <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
+      <path d="M4.5 6.5l7.5 6 7.5-6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

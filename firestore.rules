@@ -35,6 +35,29 @@ service cloud.firestore {
       return role() == 'admin' || role() == 'superAdmin';
     }
 
+    // Anyone can post to an open endpoint, so this is the only thing standing
+    // between the collection and junk written by a script: the document must
+    // have the shape the intake form produces, carry the consents the form
+    // requires, and nothing else may be smuggled into it. Sizes are capped so a
+    // single submission cannot be used to dump data into the project.
+    function isWellFormedIntake() {
+      let data = request.resource.data;
+      let who = data.demographics;
+      return data.keys().hasOnly([
+            'submittedAt', 'demographics', 'emergencyContact', 'insurance',
+            'vitals', 'medicalHistory', 'familyHistory', 'socialHistory',
+            'nutrition', 'visit', 'consent'
+          ])
+        && who.firstName is string && who.firstName.size() > 0 && who.firstName.size() <= 100
+        && who.lastName is string && who.lastName.size() > 0 && who.lastName.size() <= 100
+        && who.email is string && who.email.size() > 0 && who.email.size() <= 200
+        && who.phone is string && who.phone.size() > 0 && who.phone.size() <= 40
+        && who.dateOfBirth is string && who.dateOfBirth.size() > 0
+        && data.consent.signature is string && data.consent.signature.size() > 0
+        && data.consent.telehealth == true
+        && data.consent.hipaaAcknowledged == true;
+    }
+
     // A signed-in person may read only their OWN role document — never
     // another user's, and never write it themselves. Role assignment only
     // ever happens by hand in the Console, which authenticates via GCP IAM
@@ -44,13 +67,71 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // HIPAA audit controls: a record of who opened or deleted which patient
+    // record, and when. Append-only for every tier — no client, not even a
+    // superAdmin, may edit or delete an entry, because an audit trail its own
+    // users can rewrite is not evidence of anything. Entries can only be
+    // written attributed to the account actually making the request, so one
+    // staff member cannot forge activity under another's name.
+    function isOwnAuditEntry() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+            'actorUid', 'actorEmail', 'action', 'targetCollection', 'targetId', 'targetLabel', 'at'
+          ])
+        && data.actorUid == request.auth.uid
+        && data.actorEmail is string && data.actorEmail.size() <= 200
+        && data.action is string && data.action.size() > 0 && data.action.size() <= 60
+        && data.targetCollection is string && data.targetCollection.size() <= 60
+        && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 200
+        && data.targetLabel is string && data.targetLabel.size() <= 200
+        && data.at is string && data.at.size() > 0;
+    }
+
+    match /auditLog/{entryId} {
+      allow read: if role() == 'superAdmin';
+      allow create: if isStaff() && isOwnAuditEntry();
+      allow update, delete: if false;
+    }
+
+    // The contact page has the same no-login constraint as intake, so create
+    // is open the same way — but this is a lead ("call me back"), not a
+    // clinical record: no DOB, no medical history, no signature. It's still a
+    // visitor's name, phone and email, so read stays staff-only regardless.
+    function isWellFormedContactMessage() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['name', 'phone', 'email', 'interest', 'message', 'submittedAt'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.phone is string && data.phone.size() > 0 && data.phone.size() <= 40
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 200
+        && data.interest is string && data.interest.size() > 0 && data.interest.size() <= 100
+        && data.message is string && data.message.size() <= 2000;
+    }
+
+    match /contactMessages/{messageId} {
+      allow read: if isStaff();
+      allow create: if isWellFormedContactMessage();
+      allow update: if false;
+      allow delete: if role() == 'superAdmin';
+    }
+
+    // A patient fills this in before they have an account, so submitting must
+    // not require a login. Submitting is not the same as reading, though: these
+    // records are PHI, and `read` stays staff-only. If read were opened to
+    // match, anyone on the internet could download every patient's date of
+    // birth, address, medications and signature — the Firebase config needed to
+    // do it is public in the JS bundle by design.
+    //
+    // Records are also write-once. An open `update` would let anyone overwrite
+    // or blank out a record they never submitted, and an open `delete` would let
+    // them erase the collection.
     match /intakeRecords/{recordId} {
       allow read: if isStaff();
-
-      // Patients submit through a trusted backend (an EMR endpoint or a
-      // BAA-covered Cloud Function), never straight from the browser, so no
-      // client-side create is permitted here.
-      allow create, update, delete: if false;
+      allow create: if isWellFormedIntake();
+      allow update: if false;
+      // Deletion is the one destructive action here, so it stays on the
+      // superAdmin tier rather than every admin — matching the split already
+      // described above.
+      allow delete: if role() == 'superAdmin';
     }
 
     // One doc per patient account, written once at sign-up (src/lib/patientAuth.js)
@@ -59,8 +140,13 @@ service cloud.firestore {
     // does not carry the same BAA requirement intakeRecords does. A patient may
     // create only their own doc, only with the email their token already proves
     // is theirs, and never edit or delete it afterward.
+    //
+    // Read is staff-only, same as every other collection here — nothing in the
+    // app currently reads this doc back as the patient (patientAuth.js only
+    // ever writes it; Account.jsx gets the email from the Auth object itself,
+    // not Firestore), so there is no self-read left to preserve.
     match /patients/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if isStaff();
       allow create: if request.auth != null
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['email', 'createdAt'])

@@ -1,0 +1,109 @@
+import { useEffect, useRef, useState } from "react"
+import { ChevronDownIcon } from "./icons"
+
+const triggerClass =
+  "flex w-full items-center justify-between gap-2 rounded-2xl border border-ink-950/15 bg-paper-50 px-4 py-3.5 text-left text-ink-950 outline-none transition-colors duration-200 ease-out-smooth focus:border-ink-950/40"
+
+function optionValue(option) {
+  return typeof option === "string" ? option : option.value
+}
+
+function optionLabel(option) {
+  return typeof option === "string" ? option : option.label
+}
+
+// A real <select> (kept in the layout, not display:none) does the actual work
+// — it's what FormData(form) reads on submit, and what the browser validates
+// against `required` — while everything visible is a custom listbox the OS
+// dropdown can't be. sr-only rather than removed-from-flow keeps the native
+// "please fill this out" bubble anchored roughly where the button is.
+export default function Select({ name, options, defaultValue = "", placeholder = "Select one", required = false }) {
+  const [value, setValue] = useState(defaultValue)
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false)
+    }
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("mousedown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [open])
+
+  const selectedLabel = options.find((option) => optionValue(option) === value)
+
+  return (
+    <div ref={rootRef} className="relative">
+      <select
+        name={name}
+        required={required}
+        value={value}
+        onChange={() => {}}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="sr-only"
+      >
+        <option value="" disabled>
+          {placeholder}
+        </option>
+        {options.map((option) => (
+          <option key={optionValue(option)} value={optionValue(option)}>
+            {optionLabel(option)}
+          </option>
+        ))}
+      </select>
+
+      <button
+        type="button"
+        onClick={() => setOpen((previous) => !previous)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={triggerClass}
+      >
+        <span className={selectedLabel ? "" : "text-ink-950/40"}>
+          {selectedLabel ? optionLabel(selectedLabel) : placeholder}
+        </span>
+        <ChevronDownIcon
+          className={`size-4 shrink-0 text-ink-950/40 transition-transform duration-200 ease-out-smooth ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      <ul
+        role="listbox"
+        className={`absolute inset-x-0 top-full z-20 mt-2 max-h-56 origin-top overflow-y-auto rounded-2xl bg-white p-1.5 shadow-xl ring-1 ring-ink-950/10 transition-[opacity,transform] duration-150 ease-out-smooth ${
+          open ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
+        }`}
+      >
+        {options.map((option) => {
+          const isSelected = optionValue(option) === value
+          return (
+            <li key={optionValue(option)} role="option" aria-selected={isSelected}>
+              <button
+                type="button"
+                onClick={() => {
+                  setValue(optionValue(option))
+                  setOpen(false)
+                }}
+                className={`block w-full rounded-xl px-3.5 py-2.5 text-left text-sm transition-colors duration-150 ease-out-smooth ${
+                  isSelected ? "bg-accent-dark font-medium text-paper-50" : "text-ink-950 hover:bg-paper-100"
+                }`}
+              >
+                {optionLabel(option)}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}

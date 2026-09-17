@@ -29,6 +29,23 @@ export function PatientsIcon(props) {
   )
 }
 
+export function ActivityIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 12h4l2.5-6 4 13 2.5-7H21" />
+    </svg>
+  )
+}
+
+export function MailIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
+      <path d="M4.5 6.5l7.5 6 7.5-6" />
+    </svg>
+  )
+}
+
 export function MenuIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -67,6 +84,17 @@ export function SignOutIcon(props) {
     <svg {...base} {...props}>
       <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3" />
       <path d="M10 8l-4 4 4 4M6 12h9" />
+    </svg>
+  )
+}
+
+export function TrashIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16" />
+      <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+      <path d="M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" />
+      <path d="M10 11v6M14 11v6" />
     </svg>
   )
 }

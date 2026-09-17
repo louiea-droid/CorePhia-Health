@@ -2,7 +2,8 @@ import { useState } from "react"
 import { Helmet } from "react-helmet-async"
 import { Link } from "react-router-dom"
 import { useReveal } from "../hooks/useReveal"
-import { CheckCircleIcon, GlobeIcon, MapPinIcon, PhoneIcon } from "../components/icons"
+import { CheckCircleIcon, MailIcon, MapPinIcon, PhoneIcon } from "../components/icons"
+import Select from "../components/Select"
 
 const INTERESTS = [
   "Starting a weight loss program",
@@ -18,21 +19,50 @@ const inputClass =
 
 const labelClass = "mb-1.5 block text-sm font-medium text-ink-950/80"
 
-// TODO: replace with real contact details before launch.
+// TODO: replace the phone number with a real one before launch.
 const contactDetails = [
   { icon: PhoneIcon, label: "Phone", value: "(000) 123-4567" },
-  { icon: GlobeIcon, label: "Email", value: "hello@corephia.com" },
+  { icon: MailIcon, label: "Email", value: "info@corephia.com" },
   { icon: MapPinIcon, label: "Location", value: "Tampa, Florida" },
 ]
 
+function buildContactMessage(form) {
+  const data = new FormData(form)
+  const text = (name) => (data.get(name) ?? "").toString().trim()
+
+  return {
+    name: text("name"),
+    phone: text("phone"),
+    email: text("email"),
+    interest: text("interest"),
+    message: text("message"),
+    submittedAt: new Date().toISOString(),
+  }
+}
+
+// Imported on submit rather than at module scope so the Firebase SDK stays
+// out of the main bundle, same reasoning as submitIntakeRecord() in
+// PatientIntakeForm.jsx.
+async function submitContactMessage(record) {
+  const { sendContactMessage } = await import("../lib/contactSubmission")
+  return sendContactMessage(record)
+}
+
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState("idle")
   const [ref, visible] = useReveal()
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    // TODO: no destination yet — see submitIntakeRecord() in PatientIntakeForm.jsx.
-    setSubmitted(true)
+    const record = buildContactMessage(event.currentTarget)
+    setStatus("sending")
+    try {
+      await submitContactMessage(record)
+      setStatus("sent")
+    } catch (cause) {
+      console.error("Contact message failed:", cause.code ?? cause.message)
+      setStatus("error")
+    }
   }
 
   return (
@@ -58,7 +88,7 @@ export default function Contact() {
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div ref={ref} className={`transition-all duration-700 ease-out-smooth ${visible ? "opacity-100" : "opacity-0"}`}>
-            {submitted ? (
+            {status === "sent" ? (
               <div className="flex flex-col items-start rounded-3xl bg-paper-100 p-8">
                 <CheckCircleIcon className="size-12 text-accent-dark" />
                 <h2 className="mt-4 font-serif text-2xl text-ink-950">Thanks — we've got it.</h2>
@@ -70,7 +100,7 @@ export default function Contact() {
                   to="/intake"
                   className="mt-6 rounded-full bg-ink-950 px-6 py-3 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900"
                 >
-                  Start your intake
+                  Start your journey
                 </Link>
               </div>
             ) : (
@@ -91,20 +121,21 @@ export default function Contact() {
                   <span className={labelClass}>
                     Email address <span className="text-brand-dark">*</span>
                   </span>
-                  <input name="email" type="email" required autoComplete="email" className={inputClass} />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
+                    title="Enter a full email address, like name@example.com"
+                    className={inputClass}
+                  />
                 </label>
                 <label className="block sm:col-span-2">
                   <span className={labelClass}>
                     What can we help with? <span className="text-brand-dark">*</span>
                   </span>
-                  <select name="interest" required defaultValue="" className={inputClass}>
-                    <option value="" disabled>
-                      Select an option
-                    </option>
-                    {INTERESTS.map((item) => (
-                      <option key={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select name="interest" required placeholder="Select an option" options={INTERESTS} />
                 </label>
                 <label className="block sm:col-span-2">
                   <span className={labelClass}>Anything else we should know?</span>
@@ -112,11 +143,20 @@ export default function Contact() {
                 </label>
 
                 <div className="sm:col-span-2">
+                  {status === "error" && (
+                    <div role="alert" className="mb-4 rounded-2xl border border-brand-dark/30 bg-paper-50 p-4">
+                      <p className="text-sm font-medium text-ink-950">We could not send your message.</p>
+                      <p className="mt-1 text-sm text-ink-950/70">
+                        Nothing was sent — try again in a moment, or call us directly.
+                      </p>
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    className="w-full rounded-full bg-ink-950 py-4 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 sm:w-auto sm:px-10"
+                    disabled={status === "sending"}
+                    className="w-full rounded-full bg-ink-950 py-4 text-sm font-semibold text-paper-50 transition-colors duration-200 ease-out-smooth hover:bg-ink-900 disabled:opacity-60 sm:w-auto sm:px-10"
                   >
-                    Send message
+                    {status === "sending" ? "Sending…" : "Send message"}
                   </button>
                   <p className="mt-4 text-xs text-ink-950/50">
                     This form is not for medical emergencies. If you are experiencing a medical emergency, call
