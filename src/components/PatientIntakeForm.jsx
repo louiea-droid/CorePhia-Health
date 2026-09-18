@@ -86,7 +86,7 @@ const labelClass = "mb-1.5 block text-sm font-medium text-ink-950/80"
 
 function Field({ label, required, children }) {
   return (
-    <label className="block">
+    <label className="flex h-full flex-col justify-end">
       <span className={labelClass}>
         {label} {required && <span className="text-brand-dark">*</span>}
       </span>
